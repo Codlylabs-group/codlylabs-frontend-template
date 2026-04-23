@@ -209,6 +209,16 @@ export const authApi = {
     return response.data as { message: string }
   },
 
+  async getPasswordStatus(): Promise<{ email: string; has_password: boolean }> {
+    const response = await api.get('/api/v1/auth/password-status')
+    return response.data as { email: string; has_password: boolean }
+  },
+
+  async setPassword(password: string): Promise<{ message: string }> {
+    const response = await api.post('/api/v1/auth/set-password', { password })
+    return response.data as { message: string }
+  },
+
   saveTokens(tokens: AuthTokens) {
     authStorage.saveTokens(tokens.access_token, tokens.refresh_token)
   },

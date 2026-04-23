@@ -1,8 +1,8 @@
-import { LayoutDashboard, Users, FileCode, Package, Linkedin, MessageSquare, Headphones, Brain, FileEdit, LogOut, Store, Building2, Activity, TrendingUp, CreditCard, FlaskConical } from 'lucide-react'
+import { LayoutDashboard, Users, FileCode, Package, Linkedin, MessageSquare, Headphones, Brain, FileEdit, LogOut, Store, Building2, Activity, TrendingUp, CreditCard, FlaskConical, RefreshCw } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 interface AdminSidebarProps {
-  currentPage: 'dashboard' | 'users' | 'organizations' | 'pocs' | 'vertical-packs' | 'marketplace' | 'linkedin' | 'linkedin-outreach' | 'sales-assistant' | 'patterns' | 'spec-editor' | 'training-agent' | 'system' | 'analytics' | 'billing'
+  currentPage: 'dashboard' | 'users' | 'organizations' | 'pocs' | 'vertical-packs' | 'marketplace' | 'linkedin' | 'linkedin-outreach' | 'sales-assistant' | 'patterns' | 'spec-editor' | 'training-agent' | 'system' | 'tenants' | 'analytics' | 'billing'
   onLogout: () => void
 }
 
@@ -99,6 +99,12 @@ export default function AdminSidebar({ currentPage, onLogout }: AdminSidebarProp
       label: 'Sistema',
       icon: Activity,
       path: '/admin/system'
+    },
+    {
+      id: 'tenants',
+      label: 'Tenants',
+      icon: RefreshCw,
+      path: '/admin/tenants'
     }
   ]
 

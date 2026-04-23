@@ -17,6 +17,7 @@ interface PlanDef {
   cta: string
   pocs: string
   users: string
+  unlimitedUsers: boolean
   highlights: string[]
   segmentLabel: string
   segmentProblem: string
@@ -74,6 +75,7 @@ export default function PricingPage() {
       cta: es ? 'Empezar gratis' : 'Start free',
       pocs: '3',
       users: '1',
+      unlimitedUsers: false,
       highlights: es
         ? ['Sin tarjeta de crédito', 'Acceso al workspace completo']
         : ['No credit card required', 'Full workspace access'],
@@ -94,7 +96,8 @@ export default function PricingPage() {
       popular: false,
       cta: es ? 'Empezar a validar' : 'Start validating',
       pocs: '5',
-      users: '2',
+      users: es ? 'Ilimitados' : 'Unlimited',
+      unlimitedUsers: true,
       highlights: es
         ? ['Validá impacto de negocio en minutos', 'Reducí costos de experimentación desde el día uno']
         : ['Validate business impact in minutes', 'Reduce experimentation cost from day one'],
@@ -115,7 +118,8 @@ export default function PricingPage() {
       popular: false,
       cta: es ? 'Empezar a construir' : 'Start building',
       pocs: '12',
-      users: '5',
+      users: es ? 'Ilimitados' : 'Unlimited',
+      unlimitedUsers: true,
       highlights: es
         ? ['Priorizá inversiones en IA con datos', 'Compará ROI entre casos de uso']
         : ['Prioritize AI investments with data', 'Compare ROI across use cases'],
@@ -136,7 +140,8 @@ export default function PricingPage() {
       popular: true,
       cta: es ? 'Escalar validación' : 'Scale your validation',
       pocs: '30',
-      users: '10',
+      users: es ? 'Ilimitados' : 'Unlimited',
+      unlimitedUsers: true,
       highlights: es
         ? ['Ejecutá experimentos de IA en paralelo a escala', 'Inteligencia de decisión IA para toda la organización']
         : ['Run parallel AI experiments at scale', 'Organization-wide AI decision intelligence'],
@@ -157,7 +162,8 @@ export default function PricingPage() {
       popular: false,
       cta: es ? 'Escalar operaciones' : 'Scale your operations',
       pocs: '75',
-      users: '15',
+      users: es ? 'Ilimitados' : 'Unlimited',
+      unlimitedUsers: true,
       highlights: es
         ? ['Entregá estrategias de IA validadas a clientes', 'Ganá deals con validaciones production-ready']
         : ['Deliver validated AI strategies to clients', 'Win deals with production-ready validations'],
@@ -178,7 +184,8 @@ export default function PricingPage() {
       popular: false,
       cta: es ? 'Hablar con ventas' : 'Talk to sales',
       pocs: 'Custom',
-      users: es ? 'Ilimitado / por contrato' : 'Unlimited / by contract',
+      users: es ? 'Ilimitados' : 'Unlimited',
+      unlimitedUsers: true,
       highlights: es
         ? ['Experimentación paralela ilimitada', 'Workflows custom, SSO e integración API']
         : ['Unlimited parallel experimentation', 'Custom workflows, SSO, and API integration'],
@@ -203,14 +210,14 @@ export default function PricingPage() {
       values: ['3', '5', '12', '30', '75', 'Custom'],
     },
     {
-      label: es ? 'Usuarios por workspace' : 'Users per workspace',
+      label: es ? 'Usuarios por Workspace' : 'Users per Workspace',
       values: [
         '1',
-        '2',
-        '5',
-        '10',
-        '15',
-        es ? 'Ilimitado / por contrato' : 'Unlimited / by contract',
+        es ? 'Ilimitados' : 'Unlimited',
+        es ? 'Ilimitados' : 'Unlimited',
+        es ? 'Ilimitados' : 'Unlimited',
+        es ? 'Ilimitados' : 'Unlimited',
+        es ? 'Ilimitados' : 'Unlimited',
       ],
     },
     {
@@ -350,16 +357,25 @@ export default function PricingPage() {
                         <span className="font-semibold">{plan.pocs}</span>{' '}
                         {es ? 'validaciones' : 'validations'}
                       </p>
-                      <p className="text-sm text-gray-500 text-center mt-1">
-                        <span className="font-semibold">{plan.users}</span>{' '}
-                        {es ? 'usuarios' : 'users'}
-                      </p>
+                      {plan.unlimitedUsers ? (
+                        <p className="text-sm text-gray-500 text-center mt-1">
+                          <span className="font-semibold">
+                            {es ? 'Usuarios ilimitados' : 'Unlimited users'}
+                          </span>
+                        </p>
+                      ) : (
+                        <p className="text-sm text-gray-500 text-center mt-1">
+                          <span className="font-semibold">{plan.users}</span>{' '}
+                          {es ? 'usuarios' : 'users'}
+                        </p>
+                      )}
                     </>
                   )}
                   {plan.price === -1 && (
                     <p className="text-sm text-gray-500 text-center -mt-2 mb-2">
-                      <span className="font-semibold">{plan.users}</span>{' '}
-                      {es ? 'usuarios' : 'users'}
+                      <span className="font-semibold">
+                        {es ? 'Usuarios ilimitados' : 'Unlimited users'}
+                      </span>
                     </p>
                   )}
 

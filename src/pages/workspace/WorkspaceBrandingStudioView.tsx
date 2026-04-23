@@ -5,6 +5,7 @@ import {
   Check, Circle, Loader2, AlertTriangle, Clock, ExternalLink, Github, Rocket, RefreshCw,
 } from 'lucide-react'
 import { brandingApi, type BrandingConfig, type BrandingConfigPayload, type VercelStatus, type ProvisioningStatus } from '../../services/branding'
+import { authApi } from '../../services/auth'
 import { useBranding } from '../../hooks/useBranding'
 import { usePageTitle } from '../../hooks/usePageTitle'
 
@@ -37,6 +38,16 @@ export default function WorkspaceBrandingStudioView() {
 
   // Logo upload state
   const [logoError, setLogoError] = useState<string | null>(null)
+
+  // Password gate for publishing: OAuth-only owners (no password) must set
+  // one before their white-label goes live, or they won't be able to log in
+  // to {slug}.codlylabs.ai (tenant frontends don't support OAuth yet).
+  const [passwordStatus, setPasswordStatus] = useState<{ email: string; has_password: boolean } | null>(null)
+  const [accessPassword, setAccessPassword] = useState('')
+  const [accessPasswordConfirm, setAccessPasswordConfirm] = useState('')
+  const [accessPasswordSaving, setAccessPasswordSaving] = useState(false)
+  const [accessPasswordError, setAccessPasswordError] = useState<string | null>(null)
+  const [accessPasswordSaved, setAccessPasswordSaved] = useState(false)
 
   // Local form state
   const [form, setForm] = useState<BrandingConfigPayload>({
@@ -83,6 +94,18 @@ export default function WorkspaceBrandingStudioView() {
 
   useEffect(() => { void loadConfig() }, [loadConfig])
 
+  // Load password status once on mount. If the owner already has a password,
+  // the Access section hides the input.
+  useEffect(() => {
+    let alive = true
+    authApi.getPasswordStatus()
+      .then(data => { if (alive) setPasswordStatus(data) })
+      .catch(() => { /* fall through — publish attempt will surface the gate */ })
+    return () => { alive = false }
+  }, [])
+
+  const needsPasswordSet = passwordStatus !== null && !passwordStatus.has_password && !accessPasswordSaved
+
   const saveOrCreate = async () => {
     setSaving(true)
     setError(null)
@@ -118,7 +141,43 @@ export default function WorkspaceBrandingStudioView() {
   }, [])
   useEffect(() => () => stopPolling(), [stopPolling])
 
+  const handleSetAccessPassword = async () => {
+    setAccessPasswordError(null)
+    if (accessPassword.length < 8) {
+      setAccessPasswordError('La contraseña debe tener al menos 8 caracteres.')
+      return false
+    }
+    if (accessPassword !== accessPasswordConfirm) {
+      setAccessPasswordError('Las contraseñas no coinciden.')
+      return false
+    }
+    setAccessPasswordSaving(true)
+    try {
+      await authApi.setPassword(accessPassword)
+      setAccessPasswordSaved(true)
+      setPasswordStatus(prev => prev ? { ...prev, has_password: true } : prev)
+      setAccessPassword('')
+      setAccessPasswordConfirm('')
+      return true
+    } catch (err: any) {
+      setAccessPasswordError(err?.response?.data?.detail || 'No se pudo guardar la contraseña.')
+      return false
+    } finally {
+      setAccessPasswordSaving(false)
+    }
+  }
+
   const handlePublish = async () => {
+    // Password gate: if the owner signed in via OAuth and hasn't picked a
+    // password yet, force them to set one here first — the tenant frontend
+    // at {slug}.codlylabs.ai only does email/password login.
+    if (needsPasswordSet) {
+      const ok = await handleSetAccessPassword()
+      if (!ok) {
+        setError('Antes de publicar, configurá una contraseña para ingresar a tu plataforma.')
+        return
+      }
+    }
     if (!config) {
       await saveOrCreate()
     }
@@ -142,9 +201,20 @@ export default function WorkspaceBrandingStudioView() {
       const result = await brandingApi.publish()
       setConfig(result)
     } catch (err: any) {
-      setError(err?.response?.data?.detail || 'Error publicando')
+      // Publish errors often wrap raw GitHub/Vercel API responses — body
+      // text, request IDs, hundreds of characters. We do NOT show them to
+      // the admin. The ProvisioningStatusBanner has a friendly failure
+      // message and the full detail stays in backend logs for ops.
+      // One exception: the password gate error (from the backend) starts
+      // with the `password_required:` sentinel and is short + actionable.
+      const raw = err?.response?.data?.detail
+      if (typeof raw === 'string' && raw.startsWith('password_required:')) {
+        setError(raw.replace('password_required:', '').trim())
+      } else {
+        setError(null)
+      }
       // Backend persists provisioning_status/error even when publish fails —
-      // reload to show it.
+      // reload so the banner switches to `failed`.
       try {
         const refreshed = await brandingApi.get()
         if (refreshed) setConfig(refreshed)
@@ -302,8 +372,11 @@ export default function WorkspaceBrandingStudioView() {
             {config?.status === 'published' ? 'Published' : 'Draft'}
           </span>
         </div>
-        {error && (
-          <span className="text-xs text-red-500 mr-2">{error}</span>
+        {/* Short, user-safe errors only (load/save). Publish errors surface
+            their friendly version in the ProvisioningStatusBanner, not here,
+            because they include raw GitHub/Vercel request IDs and bodies. */}
+        {error && error.length <= 120 && (
+          <span className="text-xs text-red-500 mr-2 truncate max-w-[40ch]">{error}</span>
         )}
         <div className="flex items-center gap-2">
           <button
@@ -337,10 +410,105 @@ export default function WorkspaceBrandingStudioView() {
         <div className="bg-white border-r border-gray-200 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 56px)' }}>
 
           {/* Tenant-frontend provisioning status (GitHub repo + Vercel project) */}
-          {config && <ProvisioningStatusBanner config={config} publishing={publishing} />}
+          {config && (
+            <ProvisioningStatusBanner
+              config={config}
+              publishing={publishing}
+              ownerEmail={passwordStatus?.email || null}
+            />
+          )}
 
-          {/* Vercel publish status */}
-          {vercelStatus && <VercelStatusBanner status={vercelStatus} />}
+          {/* Legacy "subdominio activo" banner — only shown on the legacy
+              CSS-vars flow (when there is no dedicated tenant provisioning
+              in play). Under the new flow the ProvisioningStatusBanner
+              above already reports DNS health, so we mute this one to
+              avoid two competing messages stacked on top of each other. */}
+          {vercelStatus && (!config?.provisioning_status || config.provisioning_status === 'idle') && (
+            <VercelStatusBanner status={vercelStatus} />
+          )}
+
+          {/* Credenciales de ingreso a la plataforma del tenant.
+              Primero porque es el blocker más importante para el cliente no técnico:
+              "¿con qué usuario y contraseña entro?". Va arriba de todo. */}
+          {passwordStatus && (
+            <div className="m-4 p-4 rounded-xl border-2 border-indigo-200 bg-indigo-50/40">
+              <div className="flex items-start gap-2 mb-3">
+                <div className="w-7 h-7 rounded-lg bg-indigo-500 flex items-center justify-center text-white">
+                  <Lock size={14} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-semibold text-gray-900">Cómo vas a entrar a tu plataforma</h3>
+                  <p className="text-[11px] text-gray-500 mt-0.5">
+                    Una vez publicada, vas a ingresar en <strong className="text-gray-700">{form.subdomain_slug || 'tu-subdominio'}.codlylabs.ai</strong> con estos datos.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mb-2">
+                <label className="block text-[11px] font-semibold text-gray-600 mb-1 uppercase tracking-wider">Tu usuario (email)</label>
+                <div className="flex items-center gap-2 px-3 py-2 bg-white border border-indigo-200 rounded-lg text-sm text-gray-800 font-mono">
+                  {passwordStatus.email}
+                </div>
+              </div>
+
+              {passwordStatus.has_password ? (
+                <>
+                  <div className="mb-2">
+                    <label className="block text-[11px] font-semibold text-gray-600 mb-1 uppercase tracking-wider">Tu contraseña</label>
+                    <div className="px-3 py-2 bg-white border border-indigo-200 rounded-lg text-sm text-gray-400">
+                      ••••••••  (la que configuraste previamente)
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-700">
+                    <Check size={12} className="mt-0.5 flex-shrink-0" />
+                    Tu acceso ya está listo. Si olvidaste la contraseña, podés usar "¿Olvidaste tu contraseña?" desde la pantalla de login de tu plataforma.
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="mb-2">
+                    <label className="block text-[11px] font-semibold text-gray-600 mb-1 uppercase tracking-wider">Elegí tu contraseña</label>
+                    <input
+                      type="password"
+                      className="w-full px-3 py-2 border border-indigo-200 rounded-lg text-sm outline-none focus:border-indigo-500 transition-colors bg-white"
+                      value={accessPassword}
+                      onChange={e => setAccessPassword(e.target.value)}
+                      placeholder="mínimo 8 caracteres"
+                      autoComplete="new-password"
+                    />
+                  </div>
+                  <div className="mb-2">
+                    <label className="block text-[11px] font-semibold text-gray-600 mb-1 uppercase tracking-wider">Repetila para confirmar</label>
+                    <input
+                      type="password"
+                      className="w-full px-3 py-2 border border-indigo-200 rounded-lg text-sm outline-none focus:border-indigo-500 transition-colors bg-white"
+                      value={accessPasswordConfirm}
+                      onChange={e => setAccessPasswordConfirm(e.target.value)}
+                      autoComplete="new-password"
+                    />
+                  </div>
+                  {accessPasswordError && (
+                    <div className="flex items-start gap-2 p-2.5 rounded-lg bg-red-50 border border-red-200 text-[11px] text-red-600 mb-2">
+                      <AlertTriangle size={12} className="mt-0.5 flex-shrink-0" />
+                      {accessPasswordError}
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => void handleSetAccessPassword()}
+                    disabled={accessPasswordSaving || !accessPassword || !accessPasswordConfirm}
+                    className="w-full py-2.5 text-xs font-semibold text-white rounded-lg transition-all hover:shadow-sm disabled:opacity-50"
+                    style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)' }}
+                  >
+                    {accessPasswordSaving ? 'Guardando...' : 'Guardar mi contraseña'}
+                  </button>
+                  <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                    <strong className="text-gray-700">Importante:</strong> esta contraseña solo se usa para ingresar a <strong>tu plataforma</strong>, no cambia tu acceso a CodlyLabs.
+                  </p>
+                </>
+              )}
+            </div>
+          )}
 
           {/* Auto-extract */}
           <Section icon={<ImageIcon size={13} />} title="Extraer desde captura de pantalla">
@@ -411,6 +579,8 @@ export default function WorkspaceBrandingStudioView() {
               </div>
             </div>
           )}
+
+          {/* (Moved to the top of the sidebar — see PlatformAccessCard) */}
 
           {/* Identidad */}
           <Section icon={<User size={13} />} title="Identidad">
@@ -886,9 +1056,11 @@ const PROVISIONING_STEPS: { key: ProvisioningStatus; label: string; icon: typeof
 function ProvisioningStatusBanner({
   config,
   publishing,
+  ownerEmail,
 }: {
   config: BrandingConfig
   publishing: boolean
+  ownerEmail: string | null
 }) {
   const status = config.provisioning_status || 'idle'
   if (status === 'idle' && !publishing) return null
@@ -906,11 +1078,11 @@ function ProvisioningStatusBanner({
   const title = isFailed
     ? 'No se pudo desplegar el frontend del tenant'
     : isReady
-      ? 'Frontend del tenant listo'
-      : 'Desplegando tu plataforma dedicada...'
+      ? 'Tu plataforma está lista'
+      : 'Desplegando tu plataforma...'
 
   return (
-    <div className={`m-4 p-3.5 rounded-xl border ${tone.bg} ${tone.border}`}>
+    <div className={`m-4 p-2.5 rounded-xl border ${tone.bg} ${tone.border}`}>
       <div className="flex items-start gap-2">
         {isFailed
           ? <AlertTriangle size={14} className={`mt-0.5 flex-shrink-0 ${tone.title}`} />
@@ -920,71 +1092,62 @@ function ProvisioningStatusBanner({
         <div className="flex-1 min-w-0">
           <div className={`text-xs font-semibold ${tone.title}`}>{title}</div>
 
-          {/* Stepper */}
-          <div className="mt-2 space-y-1">
-            {PROVISIONING_STEPS.map((step, idx) => {
-              const done = !isFailed && (isReady || idx < currentIdx)
-              const active = !isFailed && idx === currentIdx && !isReady
-              const pending = !done && !active
-              const Icon = step.icon
-              return (
-                <div key={step.key} className="flex items-center gap-2 text-[11px]">
-                  {done ? (
-                    <Check size={10} className="text-emerald-500 flex-shrink-0" />
-                  ) : active ? (
-                    <Loader2 size={10} className="animate-spin text-indigo-500 flex-shrink-0" />
-                  ) : (
-                    <Circle size={10} className="text-gray-300 flex-shrink-0" />
-                  )}
-                  <Icon size={10} className={pending ? 'text-gray-300' : tone.body} />
-                  <span className={pending ? 'text-gray-400' : tone.body}>{step.label}</span>
-                </div>
-              )
-            })}
-          </div>
-
-          {/* Failed → error detail */}
-          {isFailed && config.provisioning_error && (
-            <div className="mt-2 p-2 rounded bg-white/60 border border-red-100 text-[11px] text-red-700 break-words">
-              {config.provisioning_error}
+          {/* Stepper — while the deploy is in flight we show every step so
+              the admin can see progress. Once ready, there's no value in a
+              5-row checklist ("everything is done"), so we collapse it. */}
+          {!isReady && !isFailed && (
+            <div className="mt-2 space-y-0.5">
+              {PROVISIONING_STEPS.map((step, idx) => {
+                const done = idx < currentIdx
+                const active = idx === currentIdx
+                const pending = !done && !active
+                const Icon = step.icon
+                return (
+                  <div key={step.key} className="flex items-center gap-2 text-[11px]">
+                    {done ? (
+                      <Check size={10} className="text-emerald-500 flex-shrink-0" />
+                    ) : active ? (
+                      <Loader2 size={10} className="animate-spin text-indigo-500 flex-shrink-0" />
+                    ) : (
+                      <Circle size={10} className="text-gray-300 flex-shrink-0" />
+                    )}
+                    <Icon size={10} className={pending ? 'text-gray-300' : tone.body} />
+                    <span className={pending ? 'text-gray-400' : tone.body}>{step.label}</span>
+                  </div>
+                )
+              })}
             </div>
           )}
 
-          {/* Ready → links */}
-          {isReady && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {config.subdomain_slug && (
-                <a
-                  href={`https://${config.subdomain_slug}.codlylabs.ai`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-md bg-white border border-emerald-200 text-emerald-700 hover:bg-emerald-100 transition-colors"
-                >
-                  <ExternalLink size={10} />
-                  {config.subdomain_slug}.codlylabs.ai
-                </a>
-              )}
-              {config.github_repo_url && (
-                <a
-                  href={config.github_repo_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-md bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  <Github size={10} />
-                  Repo
-                </a>
-              )}
-              {config.vercel_deployment_url && (
-                <a
-                  href={config.vercel_deployment_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-md bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  <Rocket size={10} />
-                  Vercel
-                </a>
+          {/* Failed → short, user-friendly message. The raw backend error
+              (GitHub request IDs, Vercel API bodies, etc.) lives in the
+              container logs for Codlylabs ops to consult; the tenant admin
+              only needs to know the publish didn't go through and that a
+              retry usually resolves it. */}
+          {isFailed && (
+            <div className="mt-2 text-[11px] text-red-700/80">
+              Intentá nuevamente en unos minutos. Si persiste, contactanos.
+            </div>
+          )}
+
+          {/* Ready → user-facing tenant URL + compact email reminder. The
+              GitHub repo and Vercel project that back it are Codlylabs
+              infrastructure and must not leak into the admin UI. */}
+          {isReady && config.subdomain_slug && (
+            <div className="mt-2 flex items-center gap-2 flex-wrap">
+              <a
+                href={`https://${config.subdomain_slug}.codlylabs.ai`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-md bg-emerald-500 text-white hover:bg-emerald-600 transition-colors"
+              >
+                <ExternalLink size={12} />
+                Abrir mi plataforma
+              </a>
+              {ownerEmail && (
+                <span className="text-[10px] text-emerald-700/80">
+                  Ingresás con <strong className="font-mono">{ownerEmail}</strong>
+                </span>
               )}
             </div>
           )}

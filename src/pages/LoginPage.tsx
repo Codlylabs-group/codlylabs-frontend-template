@@ -9,6 +9,16 @@ import { setAuthData } from '../store/userSlice'
 import { useBranding, type TenantBranding } from '../hooks/useBranding'
 import { usePageTitle } from '../hooks/usePageTitle'
 import { inferWorkspaceNameFromEmail } from '../utils/workspaceNaming'
+import { isTenantSubdomainHost } from '../utils/platformBranding'
+import { TENANT_STATIC_BRANDING } from '../constants/tenantBranding'
+
+// On a tenant build (dedicated frontend at {slug}.codlylabs.ai) OAuth is not
+// available — the Google/LinkedIn redirect URIs live in the backend config
+// pinned to the central codlylabs.ai frontend. Tenant owners and members
+// auth with email + password only. Also hides the self-register link: on
+// tenants, accounts are created via invites from /workspace/members.
+const IS_TENANT_BUILD: boolean =
+  TENANT_STATIC_BRANDING !== null || isTenantSubdomainHost()
 
 type AuthMode = 'login' | 'register'
 
@@ -40,11 +50,16 @@ export default function LoginPage() {
   const location = useLocation()
   const dispatch = useAppDispatch()
   const [searchParams] = useSearchParams()
-  const initialMode: AuthMode = (location.pathname === '/register' || searchParams.get('mode') === 'register') ? 'register' : 'login'
+  // On tenant builds: ignore ?mode=register and /register, stay on login.
+  const initialMode: AuthMode = IS_TENANT_BUILD
+    ? 'login'
+    : ((location.pathname === '/register' || searchParams.get('mode') === 'register') ? 'register' : 'login')
 
   const tenant = useBranding()
   const [mode, setMode] = useState<AuthMode>(initialMode)
-  const [showEmailForm, setShowEmailForm] = useState(false)
+  // Skip the OAuth landing on tenant builds — no OAuth is available, so we
+  // go straight to the email/password form.
+  const [showEmailForm, setShowEmailForm] = useState<boolean>(IS_TENANT_BUILD)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isOAuthLoading, setIsOAuthLoading] = useState<'linkedin' | 'google' | null>(null)
   const [error, setError] = useState('')
@@ -355,43 +370,50 @@ export default function LoginPage() {
                 {isLogin ? 'Ingresar' : 'Crear cuenta'}
               </button>
 
-              <button
-                type="button"
-                onClick={() => { setShowEmailForm(false); setError('') }}
-                className="w-full text-lg text-slate-500 hover:text-slate-700 transition-colors py-2"
-              >
-                Volver a las opciones de acceso
-              </button>
+              {/* "Back to OAuth landing" only makes sense when there IS a
+                  landing — on tenant builds there isn't. */}
+              {!IS_TENANT_BUILD && (
+                <button
+                  type="button"
+                  onClick={() => { setShowEmailForm(false); setError('') }}
+                  className="w-full text-lg text-slate-500 hover:text-slate-700 transition-colors py-2"
+                >
+                  Volver a las opciones de acceso
+                </button>
+              )}
             </form>
           )}
         </div>
 
-        {/* Toggle login/register */}
-        <p className="mt-8 text-center text-lg text-slate-500">
-          {isLogin ? (
-            <>
-              No tienes cuenta?{' '}
-              <button
-                type="button"
-                onClick={() => { setMode('register'); setError(''); setShowEmailForm(false) }}
-                className="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
-              >
-                Registrate
-              </button>
-            </>
-          ) : (
-            <>
-              Ya tienes cuenta?{' '}
-              <button
-                type="button"
-                onClick={() => { setMode('login'); setError(''); setShowEmailForm(false) }}
-                className="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
-              >
-                Inicia sesion
-              </button>
-            </>
-          )}
-        </p>
+        {/* Toggle login/register — hidden on tenant builds: accounts there
+            are created exclusively via workspace/members invites. */}
+        {!IS_TENANT_BUILD && (
+          <p className="mt-8 text-center text-lg text-slate-500">
+            {isLogin ? (
+              <>
+                No tienes cuenta?{' '}
+                <button
+                  type="button"
+                  onClick={() => { setMode('register'); setError(''); setShowEmailForm(false) }}
+                  className="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
+                >
+                  Registrate
+                </button>
+              </>
+            ) : (
+              <>
+                Ya tienes cuenta?{' '}
+                <button
+                  type="button"
+                  onClick={() => { setMode('login'); setError(''); setShowEmailForm(false) }}
+                  className="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
+                >
+                  Inicia sesion
+                </button>
+              </>
+            )}
+          </p>
+        )}
 
         {/* Powered by badge for white-label tenants */}
         {tenant.isWhiteLabel && (
@@ -607,43 +629,47 @@ function TenantLoginLayout(props: TenantLoginLayoutProps) {
                 {isSubmitting && <Loader2 className="h-5 w-5 animate-spin" />}
                 {isLogin ? 'Iniciar sesion' : 'Crear cuenta'}
               </button>
-              <button
-                type="button"
-                onClick={() => { setShowEmailForm(false); setError('') }}
-                className="w-full text-xs text-gray-500 hover:text-gray-700 transition-colors py-1"
-              >
-                Volver a las opciones de acceso
-              </button>
+              {!IS_TENANT_BUILD && (
+                <button
+                  type="button"
+                  onClick={() => { setShowEmailForm(false); setError('') }}
+                  className="w-full text-xs text-gray-500 hover:text-gray-700 transition-colors py-1"
+                >
+                  Volver a las opciones de acceso
+                </button>
+              )}
             </form>
           )}
 
-          <p className="mt-6 text-center text-sm text-gray-500">
-            {isLogin ? (
-              <>
-                No tenes cuenta?{' '}
-                <button
-                  type="button"
-                  onClick={() => { setMode('register'); setError(''); setShowEmailForm(false) }}
-                  className="font-semibold transition-opacity hover:opacity-80"
-                  style={{ color: primary }}
-                >
-                  Registrate
-                </button>
-              </>
-            ) : (
-              <>
-                Ya tenes cuenta?{' '}
-                <button
-                  type="button"
-                  onClick={() => { setMode('login'); setError(''); setShowEmailForm(false) }}
-                  className="font-semibold transition-opacity hover:opacity-80"
-                  style={{ color: primary }}
-                >
-                  Inicia sesion
-                </button>
-              </>
-            )}
-          </p>
+          {!IS_TENANT_BUILD && (
+            <p className="mt-6 text-center text-sm text-gray-500">
+              {isLogin ? (
+                <>
+                  No tenes cuenta?{' '}
+                  <button
+                    type="button"
+                    onClick={() => { setMode('register'); setError(''); setShowEmailForm(false) }}
+                    className="font-semibold transition-opacity hover:opacity-80"
+                    style={{ color: primary }}
+                  >
+                    Registrate
+                  </button>
+                </>
+              ) : (
+                <>
+                  Ya tenes cuenta?{' '}
+                  <button
+                    type="button"
+                    onClick={() => { setMode('login'); setError(''); setShowEmailForm(false) }}
+                    className="font-semibold transition-opacity hover:opacity-80"
+                    style={{ color: primary }}
+                  >
+                    Inicia sesion
+                  </button>
+                </>
+              )}
+            </p>
+          )}
 
           <p className="mt-6 text-center text-[11px] text-gray-400">
             Powered by <span className="font-semibold"><span className="text-indigo-500">Codly</span><span className="text-purple-500">Labs</span></span>

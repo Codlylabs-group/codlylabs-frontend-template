@@ -24,6 +24,11 @@ function formatLimit(value: NumericLimit, unit = ''): string {
   return `${value}${unit ? ` ${unit}` : ''}`
 }
 
+function hasUnlimitedSeats(tier: string, rawLimit: NumericLimit): boolean {
+  if (rawLimit === 'unlimited' || rawLimit === -1) return true
+  return tier.toLowerCase() !== 'free'
+}
+
 function formatCurrency(value: number): string {
   if (!Number.isFinite(value)) return '$0'
   return `$${value.toLocaleString('es-AR', { maximumFractionDigits: 2 })}`
@@ -193,7 +198,7 @@ function PlanCard({
         <li className="flex items-start gap-2">
           <Check size={12} className="mt-0.5 flex-shrink-0 text-emerald-500" />
           <span>
-            {plan.max_users_per_org === 'unlimited'
+            {hasUnlimitedSeats(plan.tier, plan.max_users_per_org)
               ? t('ws.unlimitedUsers')
               : `${plan.max_users_per_org} ${t('ws.users')}`}
           </span>
@@ -422,7 +427,11 @@ export default function WorkspaceBillingView() {
             <UsageBar
               label={t('ws.activeUsers')}
               used={status.usage.users_used}
-              limit={status.usage.users_limit}
+              limit={
+                hasUnlimitedSeats(effectiveTier, status.usage.users_limit)
+                  ? 'unlimited'
+                  : status.usage.users_limit
+              }
               color={brand.primary}
             />
           </div>
@@ -443,7 +452,14 @@ export default function WorkspaceBillingView() {
             <h3 className="text-base font-semibold text-gray-900">{t('ws.planSummary')}</h3>
             <div className="mt-4 space-y-1">
               <FeatureRow label={`${formatLimit(plan.pocs_per_month)} ${t('ws.validationsPerMonth')}`} enabled />
-              <FeatureRow label={`${formatLimit(plan.max_users_per_org)} ${t('ws.users')}`} enabled />
+              <FeatureRow
+                label={
+                  hasUnlimitedSeats(plan.tier, plan.max_users_per_org)
+                    ? t('ws.unlimitedUsers')
+                    : `${plan.max_users_per_org} ${t('ws.users')}`
+                }
+                enabled
+              />
               <FeatureRow label={t('ws.shareablePreview')} enabled />
               <FeatureRow label={t('ws.zipDownload')} enabled={plan.can_download_zip} />
               <FeatureRow label={t('ws.apiAccess')} enabled={plan.can_api_access} />

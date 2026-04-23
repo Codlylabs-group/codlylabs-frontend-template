@@ -87,6 +87,7 @@ const AdminPatternsPage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminPatter
 const AdminSpecEditorPage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminSpecEditorPage')) : () => null
 const AdminTrainingAgentPage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminTrainingAgentPage')) : () => null
 const AdminSystemPage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminSystemPage')) : () => null
+const AdminTenantsPage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminTenantsPage')) : () => null
 const AdminAnalyticsPage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminAnalyticsPage')) : () => null
 const AdminBillingPage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminBillingPage')) : () => null
 const AdminLinkedInPage = SALES_ENABLED ? lazy(() => import('./pages/AdminLinkedInPage')) : () => null
@@ -262,6 +263,7 @@ function App() {
                 <Route path="/admin/analytics" element={<FeatureGate feature="admin_advanced"><AdminRouteGuard><AdminAnalyticsPage /></AdminRouteGuard></FeatureGate>} />
                 <Route path="/admin/billing" element={<FeatureGate feature="admin_advanced"><AdminRouteGuard><AdminBillingPage /></AdminRouteGuard></FeatureGate>} />
                 <Route path="/admin/system" element={<FeatureGate feature="admin_advanced"><AdminRouteGuard><AdminSystemPage /></AdminRouteGuard></FeatureGate>} />
+                <Route path="/admin/tenants" element={<FeatureGate feature="admin_advanced"><AdminRouteGuard><AdminTenantsPage /></AdminRouteGuard></FeatureGate>} />
               </Routes>
               </TenantBoundary>
             </Suspense>
