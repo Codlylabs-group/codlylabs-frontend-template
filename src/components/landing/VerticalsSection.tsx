@@ -1,4 +1,4 @@
-import { Shield, ShoppingCart, HeartPulse } from 'lucide-react'
+import { Shield, ShoppingCart, HeartPulse, BookOpen } from 'lucide-react'
 import { useI18n } from '../../i18n'
 
 export default function VerticalsSection() {
@@ -49,7 +49,11 @@ export default function VerticalsSection() {
                     {industryLabel}
                   </p>
                   {complianceBadge && (
-                    <span className="inline-flex items-center mt-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                    <span
+                      className="inline-flex items-center gap-1 mt-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200"
+                      title={t('verticals.complianceTagsTooltip')}
+                    >
+                      <BookOpen className="w-3 h-3" />
                       {complianceBadge}
                     </span>
                   )}
@@ -58,6 +62,10 @@ export default function VerticalsSection() {
             )
           })}
         </div>
+
+        <p className="mt-6 text-xs text-slate-500 italic max-w-3xl">
+          {t('verticals.complianceTagsDisclaimer')}
+        </p>
       </div>
     </section>
   )

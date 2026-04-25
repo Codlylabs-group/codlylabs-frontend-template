@@ -26,6 +26,15 @@ export default function Footer() {
           {t('footer.copyright', { year: currentYear })}
         </div>
       </div>
+
+      {/* Legal compliance disclaimer */}
+      <div className="border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-8 py-6">
+          <p className="text-slate-500 text-xs leading-relaxed italic">
+            {t('footer.complianceDisclaimer')}
+          </p>
+        </div>
+      </div>
     </footer>
   )
 }

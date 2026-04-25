@@ -179,11 +179,11 @@ export default function WorkspacePocGeneratorView() {
   const [isVerticalModalOpen, setIsVerticalModalOpen] = useState(false)
   const [discoverySnapshot, setDiscoverySnapshot] = useState<DiscoverySummary | null>(null)
   const [freshGenerationPocId, setFreshGenerationPocId] = useState<string | null>(null)
-  // El tier viene preseleccionado desde el sidebar/header/recommendation via ?tier=
+  // El tier llega via ?tier= para deep-links desde otros puntos del workspace.
+  // El selector UI se removió — siempre se genera PoC salvo que venga un override.
   const tierFromQuery = (searchParams.get('tier') || 'poc').toLowerCase()
-  const initialTier: 'poc' | 'mvp' | 'app' =
+  const selectedTier: 'poc' | 'mvp' | 'app' =
     tierFromQuery === 'mvp' ? 'mvp' : tierFromQuery === 'app' ? 'app' : 'poc'
-  const [selectedTier, setSelectedTier] = useState<'poc' | 'mvp' | 'app'>(initialTier)
 
   useEffect(() => {
     setHeader(t('ws.generatePocTitle'), t('ws.generatePocSubtitle'))
@@ -607,70 +607,17 @@ export default function WorkspacePocGeneratorView() {
             </div>
           )}
 
-          {/* ── Selector de tier (PoC / MVP / App) ─────────────────────── */}
-          <div className="mt-6">
-            <p className="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500">
-              ¿Qué querés generar?
-            </p>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {[
-                {
-                  id: 'poc' as const,
-                  title: 'PoC',
-                  subtitle: 'Validación técnica',
-                  description: 'Dashboard + operación. Valida que la IA funciona.',
-                },
-                {
-                  id: 'mvp' as const,
-                  title: 'MVP',
-                  subtitle: 'Demo a clientes',
-                  description: 'PoC + landing + detalle + reportes + settings + navegación.',
-                },
-                {
-                  id: 'app' as const,
-                  title: 'App',
-                  subtitle: 'Producto operable',
-                  description: 'MVP + auth + admin + perfil + deploy kit production-ready.',
-                },
-              ].map((tier) => {
-                const active = selectedTier === tier.id
-                return (
-                  <button
-                    key={tier.id}
-                    type="button"
-                    onClick={() => setSelectedTier(tier.id)}
-                    disabled={isGenerating || quotaExhausted}
-                    className={`flex flex-col items-start rounded-xl border p-4 text-left transition-all disabled:opacity-60 ${
-                      active
-                        ? 'border-indigo-500 bg-indigo-50 shadow-sm ring-2 ring-indigo-500/20'
-                        : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
-                    }`}
-                  >
-                    <div className="flex w-full items-center justify-between">
-                      <span className="text-sm font-semibold text-gray-900">{tier.title}</span>
-                      {active && (
-                        <span className="h-2 w-2 rounded-full bg-indigo-500" />
-                      )}
-                    </div>
-                    <span className="mt-0.5 text-xs font-medium text-indigo-600">{tier.subtitle}</span>
-                    <p className="mt-2 text-xs text-gray-600">{tier.description}</p>
-                  </button>
-                )
-              })}
-            </div>
+          <div className="mt-6 flex justify-center">
+            <button
+              type="submit"
+              disabled={isGenerating || quotaExhausted}
+              className="inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md disabled:opacity-60"
+              style={{ background: `linear-gradient(135deg, ${brand.primary}, ${brand.primaryDark})` }}
+            >
+              <Sparkles size={16} />
+              {isGenerating ? t('ws.generatingPocBtn') : 'Generar PoC'}
+            </button>
           </div>
-
-          <button
-            type="submit"
-            disabled={isGenerating || quotaExhausted}
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl py-4 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md disabled:opacity-60"
-            style={{ background: `linear-gradient(135deg, ${brand.primary}, ${brand.primaryDark})` }}
-          >
-            <Sparkles size={16} />
-            {isGenerating
-              ? t('ws.generatingPocBtn')
-              : `Generar ${selectedTier === 'poc' ? 'PoC' : selectedTier === 'mvp' ? 'MVP' : 'App'}`}
-          </button>
 
           {quotaExhausted && (
             <button
@@ -695,7 +642,7 @@ export default function WorkspacePocGeneratorView() {
         <>
           <div className="mb-6 flex items-center gap-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 p-6 text-white shadow-sm">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
-              {freshGenerationPocId ? <Loader2 size={24} className="animate-spin" /> : <CheckCircle2 size={24} />}
+              {freshGenerationPocId ? <Rocket size={24} /> : <CheckCircle2 size={24} />}
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-bold">

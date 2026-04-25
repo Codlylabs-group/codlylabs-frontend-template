@@ -32,7 +32,6 @@ import { pocGeneratorApi } from "../services/pocGenerator";
 import { ACCESS_TOKEN_KEY } from "../services/authStorage";
 import PreviewLoadingState from "../components/PreviewLoadingState";
 import PublishControl from "../components/PublishControl";
-import TierUpgradeControl from "../components/TierUpgradeControl";
 import AgentActivityFeed from "../components/AgentActivityFeed";
 import type { AgentTurn, EditorEvent } from "../types/editorEvents";
 import { logger } from "../utils/logger";
@@ -145,7 +144,7 @@ const MessageBubble = ({ message }: { message: Message }) => {
   return (
     <div className={`flex mb-3 ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div className={`max-w-[90%] px-5 py-4 ${isUser ? 'bg-indigo-600 text-white rounded-2xl rounded-br-sm' : 'bg-gray-50 text-gray-900 rounded-2xl rounded-bl-sm'}`}>
-        <p className="text-base md:text-lg leading-7 whitespace-pre-wrap">{message.content}</p>
+        <p className="text-sm leading-6 whitespace-pre-wrap">{message.content}</p>
         {message.filesModified && message.filesModified.length > 0 && (
           <div className="mt-2 pt-2 border-t border-gray-200/20">
             <span className="text-xs font-medium">📝 Modificados:</span>
@@ -707,9 +706,54 @@ export default function InteractivePreviewPage() {
               });
               break;
 
+            case "editor_thinking_delta":
+            case "editor_message_delta": {
+              // Streaming: appendea el delta al último evento del tipo abierto
+              // (thinking_delta → editor_thinking; message_delta → editor_message).
+              const targetType = data.type === "editor_thinking_delta"
+                ? "editor_thinking"
+                : "editor_message";
+              const delta = data.content || "";
+              setAgentTurn((prev) => {
+                if (!prev) {
+                  return {
+                    id: String(Date.now()),
+                    plan: null,
+                    events: [{ type: targetType, content: delta }],
+                    clarification: null,
+                    completed: false,
+                    failed: false,
+                  };
+                }
+                // Buscar el ÚLTIMO evento del targetType y actualizarlo.
+                const events = prev.events;
+                for (let i = events.length - 1; i >= 0; i--) {
+                  if (events[i].type === targetType) {
+                    const next = [...events];
+                    next[i] = { ...events[i], content: (events[i].content || "") + delta };
+                    return { ...prev, events: next };
+                  }
+                  // Si entremedio apareció otro tipo de evento (ej. tool_use),
+                  // el bloque previo ya se cerró — abrir uno nuevo.
+                  if (
+                    events[i].type === "editor_tool_use" ||
+                    events[i].type === "editor_tool_result" ||
+                    events[i].type === "editor_executing"
+                  ) {
+                    break;
+                  }
+                }
+                return { ...prev, events: [...events, { type: targetType, content: delta }] };
+              });
+              break;
+            }
+
             case "editor_thinking":
             case "editor_discovery":
             case "editor_executing":
+            case "editor_message":
+            case "editor_tool_use":
+            case "editor_tool_result":
             case "editor_validating": {
               const evt: EditorEvent = {
                 type: data.type,
@@ -717,6 +761,9 @@ export default function InteractivePreviewPage() {
                 file: data.file,
                 check: data.check,
                 status: data.status,
+                tool_name: data.tool_name,
+                tool_input: data.tool_input,
+                tool_result: data.tool_result,
               };
               setAgentTurn((prev) => {
                 if (!prev) {
@@ -995,7 +1042,6 @@ export default function InteractivePreviewPage() {
           <div className="px-3 py-1 bg-gray-50 rounded-lg border border-gray-200/20">
             <span className="text-[12px] font-mono text-indigo-600 font-semibold">#{pocId?.slice(0, 8)}</span>
           </div>
-          {pocId && <TierUpgradeControl pocId={pocId} />}
           {pocId && <PublishControl pocId={pocId} />}
           <button
             onClick={handleFinish}
@@ -1010,15 +1056,19 @@ export default function InteractivePreviewPage() {
 
       {/* Main content: Chat + Preview */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Chat Panel (30%) - hidden */}
-        <div className="w-[32%] min-w-[340px] max-w-[540px] border-r border-gray-200/30 flex-col bg-white hidden">
+        {/* Chat Panel (30%) — visible sólo en dev (prod lo oculta via build). */}
+        <div
+          className={`w-[24%] min-w-[280px] max-w-[380px] border-r border-gray-200/30 flex-col bg-white ${
+            import.meta.env.DEV ? 'flex' : 'hidden'
+          }`}
+        >
           {/* Chat header */}
           <div className="p-5 border-b border-gray-100" style={{ background: 'linear-gradient(135deg, rgba(88,68,237,0.04) 0%, rgba(88,68,237,0.08) 100%)' }}>
             <div className="flex items-center gap-2">
-              <Sparkles size={18} className="text-indigo-600" />
+              <Sparkles size={16} className="text-indigo-600" />
               <span className="font-bold text-lg text-gray-900" style={{ fontFamily: 'Manrope, sans-serif' }}>{t('editor.assistant')}</span>
             </div>
-            <p className="text-sm md:text-base text-gray-500 leading-6 mt-1.5">{t('editor.assistantSubtitle')}</p>
+            <p className="text-xs text-gray-500 leading-5 mt-1.5">{t('editor.assistantSubtitle')}</p>
           </div>
 
           {/* Messages */}
@@ -1042,7 +1092,7 @@ export default function InteractivePreviewPage() {
                   <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:0.15s]" />
                   <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce [animation-delay:0.3s]" />
                 </div>
-                <span className="text-sm md:text-base italic">{t('editor.processing')}</span>
+                <span className="text-xs italic">{t('editor.processing')}</span>
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -1079,7 +1129,7 @@ export default function InteractivePreviewPage() {
                   target.style.height = 'auto';
                   target.style.height = Math.min(target.scrollHeight, 150) + 'px';
                 }}
-                className="flex-1 bg-transparent border-none outline-none text-base md:text-lg leading-7 py-1.5 placeholder:text-gray-400 disabled:opacity-60 resize-none overflow-y-auto"
+                className="flex-1 bg-transparent border-none outline-none text-sm leading-6 py-1.5 placeholder:text-gray-400 disabled:opacity-60 resize-none overflow-y-auto"
                 style={{ minHeight: '44px', maxHeight: '150px' }}
               />
               <button

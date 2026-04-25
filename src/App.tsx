@@ -132,6 +132,7 @@ const TENANT_ALLOWED_PREFIXES = [
   '/workspace',
   '/profile',
   '/invite/',
+  '/preview/',
 ]
 
 function TenantBoundary({ children }: { children: React.ReactNode }) {

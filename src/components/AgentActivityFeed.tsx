@@ -2,7 +2,22 @@
 // Plan pinneado arriba, eventos scrolleables, card de clarification bloqueante.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { AlertTriangle, Check, CheckCircle2, FileEdit, Loader2, Search, Sparkles, XCircle } from 'lucide-react'
+import {
+  AlertTriangle,
+  Brain,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  FileEdit,
+  Loader2,
+  MessageSquare,
+  Search,
+  Sparkles,
+  Terminal,
+  Wrench,
+  XCircle,
+} from 'lucide-react'
 import type { AgentTurn, EditorEvent } from '@/types/editorEvents'
 import { api } from '@/services/api'
 
@@ -16,11 +31,23 @@ const EVENT_ORDER: Record<string, number> = {
   editor_plan: 0,
   editor_thinking: 1,
   editor_discovery: 2,
-  editor_executing: 3,
-  editor_validating: 4,
-  editor_clarification_needed: 5,
-  editor_completed: 6,
-  editor_failed: 7,
+  editor_tool_use: 3,
+  editor_tool_result: 4,
+  editor_executing: 5,
+  editor_message: 6,
+  editor_validating: 7,
+  editor_clarification_needed: 8,
+  editor_completed: 9,
+  editor_failed: 10,
+}
+
+const TOOL_ICONS: Record<string, JSX.Element> = {
+  read_file: <Search className="mt-0.5 h-3 w-3 text-blue-500" />,
+  list_files: <Search className="mt-0.5 h-3 w-3 text-blue-500" />,
+  edit_file: <FileEdit className="mt-0.5 h-3 w-3 text-indigo-500" />,
+  create_file: <FileEdit className="mt-0.5 h-3 w-3 text-emerald-500" />,
+  run_command: <Terminal className="mt-0.5 h-3 w-3 text-amber-500" />,
+  ask_user: <AlertTriangle className="mt-0.5 h-3 w-3 text-amber-500" />,
 }
 
 export default function AgentActivityFeed({ pocId, turn, onClarificationSent }: AgentActivityFeedProps) {
@@ -198,10 +225,44 @@ function EventRow({ evt }: { evt: EditorEvent }) {
   const baseClass = 'flex items-start gap-2 text-xs text-slate-600 dark:text-slate-300'
 
   if (evt.type === 'editor_thinking') {
+    return <ThinkingRow content={evt.content || ''} />
+  }
+  if (evt.type === 'editor_message') {
+    return (
+      <div className="flex items-start gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-800 dark:bg-slate-800/60 dark:text-slate-200">
+        <MessageSquare className="mt-0.5 h-3 w-3 flex-shrink-0 text-indigo-500" />
+        <span className="whitespace-pre-wrap leading-5">{evt.content}</span>
+      </div>
+    )
+  }
+  if (evt.type === 'editor_tool_use') {
+    const icon = (evt.tool_name && TOOL_ICONS[evt.tool_name]) || <Wrench className="mt-0.5 h-3 w-3 text-slate-400" />
     return (
       <div className={baseClass}>
-        <Loader2 className="mt-0.5 h-3 w-3 animate-spin text-slate-400" />
-        <span className="italic">{evt.content || 'Pensando...'}</span>
+        {icon}
+        <span>
+          <span className="font-medium text-slate-700 dark:text-slate-200">{evt.tool_name}</span>
+          {evt.content && (
+            <>
+              {' '}
+              <code className="rounded bg-slate-100 px-1 py-0.5 text-[11px] dark:bg-slate-800">{evt.content}</code>
+            </>
+          )}
+        </span>
+      </div>
+    )
+  }
+  if (evt.type === 'editor_tool_result') {
+    const ok = evt.status !== 'error'
+    return (
+      <div className={baseClass}>
+        {ok
+          ? <Check className="mt-0.5 h-3 w-3 text-green-600" />
+          : <XCircle className="mt-0.5 h-3 w-3 text-red-600" />}
+        <span className="text-[11px] opacity-80">
+          {evt.tool_name}
+          {evt.tool_result ? ` · ${evt.tool_result}` : ''}
+        </span>
       </div>
     )
   }
@@ -239,6 +300,33 @@ function EventRow({ evt }: { evt: EditorEvent }) {
     <div className={baseClass} data-order={order}>
       <Sparkles className="mt-0.5 h-3 w-3 text-slate-400" />
       <span>{evt.content || evt.type}</span>
+    </div>
+  )
+}
+
+function ThinkingRow({ content }: { content: string }) {
+  const [open, setOpen] = useState(false)
+  const isLong = content.length > 160
+  const preview = isLong ? content.slice(0, 160) + '…' : content
+  return (
+    <div className="flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400">
+      <Brain className="mt-0.5 h-3 w-3 flex-shrink-0 text-purple-400" />
+      <div className="flex-1">
+        {isLong ? (
+          <button
+            type="button"
+            onClick={() => setOpen(o => !o)}
+            className="flex items-start gap-1 text-left italic hover:text-slate-700 dark:hover:text-slate-200"
+          >
+            {open
+              ? <ChevronDown className="mt-0.5 h-3 w-3 flex-shrink-0" />
+              : <ChevronRight className="mt-0.5 h-3 w-3 flex-shrink-0" />}
+            <span className="whitespace-pre-wrap leading-5">{open ? content : preview}</span>
+          </button>
+        ) : (
+          <span className="italic leading-5 whitespace-pre-wrap">{content}</span>
+        )}
+      </div>
     </div>
   )
 }

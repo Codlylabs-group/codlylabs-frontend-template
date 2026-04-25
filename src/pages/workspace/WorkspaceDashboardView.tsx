@@ -321,6 +321,13 @@ export default function WorkspaceDashboardView() {
     [context.workspace.brand],
   )
 
+  const workspaceDisplayName = useMemo(() => {
+    const rawName = context.workspace.name?.trim() || ''
+    const isDefault = rawName.toLowerCase() === 'mi workspace'
+    if (rawName && !isDefault) return rawName
+    return context.user.full_name?.trim() || context.user.email.split('@')[0]
+  }, [context.workspace.name, context.user.full_name, context.user.email])
+
   const statCards = useMemo(
     () => [
       {
@@ -371,7 +378,7 @@ export default function WorkspaceDashboardView() {
           </svg>
         </div>
         <div className="relative">
-          <h2 className="mb-1 text-xl font-semibold">{t('ws.welcomeTo')} {context.workspace.name}</h2>
+          <h2 className="mb-1 text-xl font-semibold">{t('ws.welcomeTo')} {workspaceDisplayName}</h2>
           <p className="text-sm text-blue-100">
             {t('ws.youHave')} {context.summary.pending_recommendations} {t('ws.pendingRecs')}{' '}
             {context.summary.active_previews} {t('ws.activePreviewsSuffix')}

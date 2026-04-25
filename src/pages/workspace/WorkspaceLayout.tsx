@@ -143,7 +143,7 @@ function buildNavSections(context: WorkspaceContextResponse | null, t: (key: str
       label: '',
       items: [
         ...(isAdminOrOwner && !isTenantWorkspace
-          ? [{ icon: Palette, label: 'White Label', to: '/workspace/branding' } as NavItem]
+          ? [{ icon: Palette, label: 'White Label', disabled: true } as NavItem]
           : []),
         ...(isAdminOrOwner && billingEnabled
           ? [{ icon: CreditCard, label: t('ws.billing'), to: '/workspace/billing' } as NavItem]
@@ -182,7 +182,11 @@ function Sidebar({
       .slice(0, 2)
       .map((part) => part[0]?.toUpperCase() || '')
       .join('') || 'US'
-  const workspaceLabel = workspace.name?.trim() || brand.name
+  const rawWorkspaceName = workspace.name?.trim() || ''
+  const isDefaultWorkspaceName = rawWorkspaceName.toLowerCase() === 'mi workspace'
+  const workspaceLabel = !rawWorkspaceName || isDefaultWorkspaceName
+    ? userLabel
+    : rawWorkspaceName
   const workspaceSubLabel = workspace.plan_label?.trim() || 'Workspace empresarial'
 
   const isItemActive = (item: NavItem): boolean => {
