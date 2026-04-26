@@ -19,6 +19,7 @@ import {
   Eye,
   FolderKanban,
   Globe,
+  Home,
   Layers,
   LayoutDashboard,
   Lightbulb,
@@ -625,6 +626,15 @@ function TopBar({
       className="fixed right-0 top-0 z-20 flex h-16 items-center border-b border-gray-200 bg-white/80 px-6 backdrop-blur-sm transition-all duration-300"
       style={{ left: sidebarCollapsed ? 64 : 256 }}
     >
+      <Link
+        to="/"
+        className="mr-4 flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-500 transition-colors hover:border-gray-300 hover:text-gray-700"
+        title={t('ws.backToLanding')}
+        aria-label={t('ws.backToLanding')}
+      >
+        <Home size={14} />
+        <span className="hidden sm:inline">{t('ws.backToLanding')}</span>
+      </Link>
       <div className="flex-1">
         <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
         {subtitle && <p className="text-xs text-gray-400">{subtitle}</p>}

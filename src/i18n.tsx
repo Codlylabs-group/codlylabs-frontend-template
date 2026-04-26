@@ -281,6 +281,7 @@ export const translations: Record<Language, Translations> = {
     'ws.close': 'Close',
     'ws.createInvitation': 'Create invitation',
     'ws.userMenu': 'User menu',
+    'ws.backToLanding': 'Back to landing',
     'ws.principal': 'Main',
     'ws.footer.docs': 'Documentation',
     'ws.footer.support': 'Support',
@@ -360,7 +361,7 @@ export const translations: Record<Language, Translations> = {
     // What is CodlyLabs
     'whatIs.title': 'From idea to working AI validation in minutes.',
     'whatIs.block1': 'Test business impact before committing budget. CodlyLabs is the enterprise validation infrastructure that lets you evaluate AI use cases with production-ready code, compliance, and deployment — in minutes, not months.',
-    'whatIs.block2': 'Evaluate multiple use cases in parallel and make data-driven decisions. Every validation includes full-stack code (React + FastAPI), Docker deployment, CI/CD, documentation, and industry compliance — ready to present to the board on day one.',
+    'whatIs.block2': 'Evaluate multiple use cases in parallel and make data-driven decisions. Every validation includes full-stack code (React + FastAPI), Docker deployment, CI/CD, documentation, and industry-specific compliance reference patterns — ready to present to the board on day one.',
 
     // Hero
     'hero.eyebrow': 'Enterprise AI Validation Infrastructure',
@@ -1304,7 +1305,7 @@ export const translations: Record<Language, Translations> = {
     'pricing.no': 'No',
     'pricing.unlimited': 'Unlimited',
     'pricing.extraPoc': 'Extra validation: ${price}/each',
-    'pricing.bottomNote': 'All plans include multi-agent AI pipeline, quality gates, industry compliance, Docker, CI/CD, and documentation. Prices in USD. Cancel anytime.',
+    'pricing.bottomNote': 'All plans include multi-agent AI pipeline, quality gates, industry-specific compliance reference patterns, Docker, CI/CD, and documentation. Prices in USD. Cancel anytime.',
     'pricing.cta.starter': 'Start validating',
     'pricing.cta.builder': 'Start building',
     'pricing.cta.team': 'Scale your validation',
@@ -1866,6 +1867,7 @@ export const translations: Record<Language, Translations> = {
     'ws.close': 'Cerrar',
     'ws.createInvitation': 'Crear invitacion',
     'ws.userMenu': 'Menu de usuario',
+    'ws.backToLanding': 'Ir a la landing',
     'ws.principal': 'Principal',
     'ws.footer.docs': 'Documentacion',
     'ws.footer.support': 'Soporte',
@@ -1945,7 +1947,7 @@ export const translations: Record<Language, Translations> = {
     // What is CodlyLabs
     'whatIs.title': 'De idea a validación de IA funcional en minutos.',
     'whatIs.block1': 'Probá el impacto de negocio antes de comprometer presupuesto. CodlyLabs es la infraestructura de validación enterprise que te permite evaluar casos de uso de IA con código production-ready, compliance y deployment — en minutos, no meses.',
-    'whatIs.block2': 'Evaluá múltiples casos de uso en paralelo y tomá decisiones basadas en datos. Cada validación incluye código full-stack (React + FastAPI), deployment Docker, CI/CD, documentación y compliance por industria — listo para presentar al directorio desde el día uno.',
+    'whatIs.block2': 'Evaluá múltiples casos de uso en paralelo y tomá decisiones basadas en datos. Cada validación incluye código full-stack (React + FastAPI), deployment Docker, CI/CD, documentación y patrones de compliance de referencia por industria — listo para presentar al directorio desde el día uno.',
 
     // Hero
     'hero.eyebrow': 'Infraestructura de validación enterprise',
@@ -2890,7 +2892,7 @@ export const translations: Record<Language, Translations> = {
     'pricing.no': 'No',
     'pricing.unlimited': 'Ilimitado',
     'pricing.extraPoc': 'Validación adicional: ${price}/c.u.',
-    'pricing.bottomNote': 'Todos los planes incluyen pipeline multi-agente, quality gates, compliance por industria, Docker, CI/CD y documentación. Precios en USD. Cancelá en cualquier momento.',
+    'pricing.bottomNote': 'Todos los planes incluyen pipeline multi-agente, quality gates, patrones de compliance de referencia por industria, Docker, CI/CD y documentación. Precios en USD. Cancelá en cualquier momento.',
     'pricing.cta.starter': 'Empezar a validar',
     'pricing.cta.builder': 'Empezar a construir',
     'pricing.cta.team': 'Escalar validación',

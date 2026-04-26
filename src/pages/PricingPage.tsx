@@ -480,8 +480,8 @@ export default function PricingPage() {
           <div className="text-center mt-12">
             <p className="text-gray-500 text-sm max-w-2xl mx-auto">
               {es
-                ? 'Todos los planes incluyen pipeline multi-agente, quality gates, compliance por industria, Docker, CI/CD y documentación. Precios en USD. Cancelá en cualquier momento.'
-                : 'All plans include multi-agent AI pipeline, quality gates, industry compliance, Docker, CI/CD, and documentation. Prices in USD. Cancel anytime.'}
+                ? 'Todos los planes incluyen pipeline multi-agente, quality gates, patrones de compliance de referencia por industria, Docker, CI/CD y documentación. Precios en USD. Cancelá en cualquier momento.'
+                : 'All plans include multi-agent AI pipeline, quality gates, industry-specific compliance reference patterns, Docker, CI/CD, and documentation. Prices in USD. Cancel anytime.'}
             </p>
           </div>
         </div>

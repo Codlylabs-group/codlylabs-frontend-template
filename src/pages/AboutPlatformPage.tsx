@@ -41,8 +41,8 @@ export default function AboutPlatformPage() {
       icon: Map,
       title: 'Vertical Pack',
       description: es
-        ? 'Catálogo probado que combina plantillas, conectores y compliance por industria.'
-        : 'Proven catalog that combines templates, connectors and compliance by industry.',
+        ? 'Catálogo probado que combina plantillas, conectores y patrones de referencia regulatoria por industria.'
+        : 'Proven catalog that combines templates, connectors and industry-specific regulatory reference patterns.',
       requirement: es
         ? 'Elegí un vertical (Retail, Salud, Finanzas, Logística) y seguí sus playbooks.'
         : 'Choose a vertical (Retail, Healthcare, Finance, Logistics) and follow its playbooks.',
