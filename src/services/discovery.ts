@@ -55,6 +55,13 @@ export const discoveryService = {
     return response.data;
   },
 
+  async associateUserWithSession(sessionId: string): Promise<{ success: boolean; user_name: string | null }> {
+    const response = await api.post(`${DISCOVERY_BASE}/session/associate-user`, {
+      session_id: sessionId,
+    });
+    return response.data;
+  },
+
   /**
    * List all discovery sessions
    */

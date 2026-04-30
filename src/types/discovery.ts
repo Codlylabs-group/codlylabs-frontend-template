@@ -117,7 +117,6 @@ export interface DiscoveryResponse {
   progress?: DiscoveryProgressResponse;
   discovery_summary?: DiscoverySummary;
   next_step?: string;
-  diagnosis_endpoint?: string;
   warning?: string;
 }
 

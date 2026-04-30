@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useQueryClient } from '@tanstack/react-query'
 import {
   ArrowRight,
   CheckCircle2,
@@ -16,10 +15,6 @@ import { DiscoveryChatInterface } from '../../components/DiscoveryChatInterface'
 import { VerticalSelectorModal, type SelectableVertical } from '../../components/VerticalSelectorModal'
 import { api } from '../../services/api'
 import { discoveryService } from '../../services/discovery'
-import { diagnosisApi } from '../../services/diagnosis'
-import { onboardingApi } from '../../services/onboarding'
-import { recommendationApi } from '../../services/recommendation'
-import { roadmapApi } from '../../services/roadmap'
 import { useAppSelector } from '../../store/hooks'
 import type {
   DiscoveryProgressResponse,
@@ -54,6 +49,9 @@ const SIMULATED_THOUGHTS = [
   'Identificando dependencias y restricciones...',
   'Preparando la siguiente pregunta del agente...',
 ]
+
+const workspaceSummaryPath = (sessionId: string, tierQuery: string) =>
+  `/workspace/summary?session=${sessionId}${tierQuery}`
 
 function EntryForm({
   inputValue,
@@ -247,7 +245,6 @@ export default function WorkspaceDiscoveryView() {
   // Tier seleccionado en el header o sidebar (preservado durante todo el flujo)
   const selectedTier = (searchParams.get('tier') || 'poc').toLowerCase()
   const tierQuery = selectedTier !== 'poc' ? `&tier=${selectedTier}` : ''
-  const queryClient = useQueryClient()
   const userData = useAppSelector((state) => state.user.user)
   const { brand, setHeader } = useWorkspaceOutletContext()
 
@@ -367,36 +364,6 @@ export default function WorkspaceDiscoveryView() {
     }
   }, [currentStepIndex])
 
-  const triggerPrefetch = useCallback(
-    (sid: string) => {
-      void queryClient.prefetchQuery({
-        queryKey: ['diagnosis', sid],
-        queryFn: () => diagnosisApi.analyze(sid),
-        staleTime: 5 * 60 * 1000,
-      })
-      void queryClient.prefetchQuery({
-        queryKey: ['recommendation', sid, 'es'],
-        queryFn: () => recommendationApi.generate(sid, 'es'),
-        staleTime: 5 * 60 * 1000,
-      })
-      void queryClient.prefetchQuery({
-        queryKey: ['roadmap', sid],
-        queryFn: () => roadmapApi.generate(sid),
-        staleTime: 5 * 60 * 1000,
-      })
-    },
-    [queryClient],
-  )
-
-  useEffect(() => {
-    if (
-      sessionId &&
-      (status === 'ready_for_confirmation' || status === 'completed' || status === 'completed_with_low_confidence')
-    ) {
-      triggerPrefetch(sessionId)
-    }
-  }, [sessionId, status, triggerPrefetch])
-
   const handleSelectVertical = (vertical: SelectableVertical) => {
     setSelectedVertical(vertical)
     setIsVerticalModalOpen(false)
@@ -418,7 +385,7 @@ export default function WorkspaceDiscoveryView() {
 
       if (userData?.full_name) {
         try {
-          const result = await onboardingApi.associateUserWithSession(newSessionId)
+          const result = await discoveryService.associateUserWithSession(newSessionId)
           if (result.success && result.user_name) {
             setSessionName(newSessionId, result.user_name)
           }
@@ -483,17 +450,6 @@ export default function WorkspaceDiscoveryView() {
   const handleSendMessage = async (message: string) => {
     const trimmed = message.trim()
     if (!trimmed || isLoading) return
-    if (trimmed.length < MIN_PROMPT_LENGTH) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'agent',
-          message: 'Contame un poco más — al menos una frase completa para que pueda razonar mejor.',
-          timestamp: new Date().toISOString(),
-        },
-      ])
-      return
-    }
 
     setIsLoading(true)
     try {
@@ -531,10 +487,10 @@ export default function WorkspaceDiscoveryView() {
       if (response.progress) setProgress(response.progress)
       if (response.discovery_summary) setDiscoverySummary(response.discovery_summary)
 
-      if (response.status === 'completed' && response.diagnosis_endpoint) {
+      if (response.status === 'completed') {
         window.setTimeout(() => {
-          navigate(`/workspace/recommendation?session=${response.session_id}${tierQuery}`)
-        }, 2000)
+          navigate(workspaceSummaryPath(response.session_id, tierQuery))
+        }, 800)
       }
     } catch (err: any) {
       console.error('Error during discovery:', err)
@@ -617,7 +573,7 @@ export default function WorkspaceDiscoveryView() {
       if (response.discovery_summary) setDiscoverySummary(response.discovery_summary)
       if (response.progress) setProgress(response.progress)
       setSessionId(response.session_id)
-      triggerPrefetch(response.session_id)
+      navigate(workspaceSummaryPath(response.session_id, tierQuery))
     } catch (err) {
       console.error('Error confirming synthesis:', err)
     } finally {
@@ -750,12 +706,12 @@ export default function WorkspaceDiscoveryView() {
           {isCompleted && (
             <button
               type="button"
-              onClick={() => navigate(`/workspace/recommendation?session=${sessionId}${tierQuery}`)}
+              onClick={() => navigate(workspaceSummaryPath(sessionId, tierQuery))}
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md"
               style={{ background: `linear-gradient(135deg, ${brand.primary}, ${brand.primaryDark})` }}
             >
               <Sparkles size={16} />
-              Ver recomendación
+              Ver resumen
             </button>
           )}
         </div>

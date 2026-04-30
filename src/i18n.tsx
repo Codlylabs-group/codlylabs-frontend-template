@@ -360,7 +360,7 @@ export const translations: Record<Language, Translations> = {
 
     // What is CodlyLabs
     'whatIs.title': 'From idea to working AI validation in minutes.',
-    'whatIs.block1': 'Test business impact before committing budget. CodlyLabs is the enterprise validation infrastructure that lets you evaluate AI use cases with production-ready code, compliance, and deployment — in minutes, not months.',
+    'whatIs.block1': 'Test business impact before committing budget. CodlyLabs is the enterprise validation infrastructure that lets you evaluate AI use cases with production-ready code, compliance-aware design patterns, and deployment — in minutes, not months.',
     'whatIs.block2': 'Evaluate multiple use cases in parallel and make data-driven decisions. Every validation includes full-stack code (React + FastAPI), Docker deployment, CI/CD, documentation, and industry-specific compliance reference patterns — ready to present to the board on day one.',
 
     // Hero
@@ -954,6 +954,11 @@ export const translations: Record<Language, Translations> = {
     'thoughts.waitMessage': 'This process may take 3-5 minutes. The model is analyzing your case and generating custom code.',
     'thoughts.source.model': 'Model',
     'thoughts.source.system': 'System',
+    'thoughts.live.title': 'Running',
+    'thoughts.live.backend': 'Creating the backend... {elapsed}s',
+    'thoughts.live.frontend': 'Creating the frontend... {elapsed}s',
+    'thoughts.live.build': 'Compiling and validating... {elapsed}s',
+    'thoughts.live.generic': 'Still working on your PoC... {elapsed}s',
     // Progress step messages (emitted by backend via progress_tracker with key+params)
     'thoughts.step.pregenerating_with_narrative': 'Pre-generating your PoC: {narrative}',
     'thoughts.step.pregenerating_generic': 'Pre-generating your PoC in the background while you review the recommendation…',
@@ -1004,6 +1009,7 @@ export const translations: Record<Language, Translations> = {
     'thoughts.step.autobuild_heartbeat_build': 'Compiling and fixing build errors ({elapsed}s)',
     'thoughts.step.autobuild_build_done_ok': 'Build successful. PoC compiles without errors.',
     'thoughts.step.autobuild_build_done_fail': 'Build failed after self-healing. The PoC may have compilation issues.',
+    'thoughts.step.global_heartbeat': 'Still working on your PoC... ({elapsed}s)',
     // Auto-build titles
     'thoughts.title.autobuild_backend': 'Backend',
     'thoughts.title.autobuild_extract': 'Contract',
@@ -1946,7 +1952,7 @@ export const translations: Record<Language, Translations> = {
 
     // What is CodlyLabs
     'whatIs.title': 'De idea a validación de IA funcional en minutos.',
-    'whatIs.block1': 'Probá el impacto de negocio antes de comprometer presupuesto. CodlyLabs es la infraestructura de validación enterprise que te permite evaluar casos de uso de IA con código production-ready, compliance y deployment — en minutos, no meses.',
+    'whatIs.block1': 'Probá el impacto de negocio antes de comprometer presupuesto. CodlyLabs es la infraestructura de validación enterprise que te permite evaluar casos de uso de IA con código production-ready, patrones de diseño alineados a compliance y deployment — en minutos, no meses.',
     'whatIs.block2': 'Evaluá múltiples casos de uso en paralelo y tomá decisiones basadas en datos. Cada validación incluye código full-stack (React + FastAPI), deployment Docker, CI/CD, documentación y patrones de compliance de referencia por industria — listo para presentar al directorio desde el día uno.',
 
     // Hero
@@ -2541,6 +2547,11 @@ export const translations: Record<Language, Translations> = {
     'thoughts.waitMessage': 'Este proceso puede tomar 3-5 minutos. El modelo está analizando tu caso y generando código personalizado.',
     'thoughts.source.model': 'Modelo',
     'thoughts.source.system': 'Sistema',
+    'thoughts.live.title': 'En curso',
+    'thoughts.live.backend': 'Creando el backend... {elapsed}s',
+    'thoughts.live.frontend': 'Creando el frontend... {elapsed}s',
+    'thoughts.live.build': 'Compilando y validando... {elapsed}s',
+    'thoughts.live.generic': 'Sigue trabajando en tu PoC... {elapsed}s',
     // Mensajes de cada paso (emitidos por el backend via progress_tracker con key+params)
     'thoughts.step.pregenerating_with_narrative': 'Pre-generando tu PoC: {narrative}',
     'thoughts.step.pregenerating_generic': 'Pre-generando tu PoC en segundo plano mientras revisas la recomendación…',
@@ -2591,6 +2602,7 @@ export const translations: Record<Language, Translations> = {
     'thoughts.step.autobuild_heartbeat_build': 'Compilando y corrigiendo errores de build ({elapsed}s)',
     'thoughts.step.autobuild_build_done_ok': 'Build exitoso. PoC compilable sin errores.',
     'thoughts.step.autobuild_build_done_fail': 'Build falló tras self-healing. La PoC puede tener problemas de compilación.',
+    'thoughts.step.global_heartbeat': 'Sigue trabajando en tu PoC... ({elapsed}s)',
     // Títulos del auto-build
     'thoughts.title.autobuild_backend': 'Backend',
     'thoughts.title.autobuild_extract': 'Contrato',

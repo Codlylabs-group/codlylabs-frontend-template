@@ -832,7 +832,7 @@ export default function WorkspacePocGeneratorView() {
 
       {isGenerating && (
         <SimulatedThoughts
-          t={(key: string) => buildThoughtsStrings(t)[key] ?? key}
+          t={(key: string, params?: Record<string, string | number>) => buildThoughtsStrings(t)[key] ?? t(key, params)}
           steps={generationThoughts}
           status={progressError ? 'error' : generationProgressStatus}
         />

@@ -251,7 +251,7 @@ export default function PocGeneratorPage() {
       <header className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl border-b border-indigo-500/10 shadow-sm shadow-indigo-500/5">
         <div className="flex justify-between items-center px-6 py-4 max-w-7xl mx-auto">
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate(`/roadmap?session=${sessionId}`)} className="p-2 hover:bg-slate-100 transition-colors rounded-full active:scale-95">
+            <button onClick={() => navigate(`/discovery-progress?session=${sessionId}`)} className="p-2 hover:bg-slate-100 transition-colors rounded-full active:scale-95">
               <ArrowLeft className="w-5 h-5 text-slate-500" />
             </button>
             <Link to="/" className="text-xl font-bold text-indigo-600 tracking-tight" style={{ fontFamily: 'Manrope, sans-serif' }}>CodlyLabs</Link>

@@ -26,12 +26,14 @@ import {
   ChevronRight,
   ExternalLink,
   Loader2,
+  Share2,
+  Copy,
+  X,
 } from "lucide-react";
 import { api } from "../services/api";
 import { pocGeneratorApi } from "../services/pocGenerator";
 import { ACCESS_TOKEN_KEY } from "../services/authStorage";
 import PreviewLoadingState from "../components/PreviewLoadingState";
-import PublishControl from "../components/PublishControl";
 import AgentActivityFeed from "../components/AgentActivityFeed";
 import type { AgentTurn, EditorEvent } from "../types/editorEvents";
 import { logger } from "../utils/logger";
@@ -242,6 +244,8 @@ export default function InteractivePreviewPage() {
     message: "",
     severity: "info",
   });
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
 
   // Validation state
   const [isValidating, setIsValidating] = useState(false);
@@ -1042,7 +1046,18 @@ export default function InteractivePreviewPage() {
           <div className="px-3 py-1 bg-gray-50 rounded-lg border border-gray-200/20">
             <span className="text-[12px] font-mono text-indigo-600 font-semibold">#{pocId?.slice(0, 8)}</span>
           </div>
-          {pocId && <PublishControl pocId={pocId} />}
+          {previewUrl && (
+            <button
+              onClick={() => {
+                setShareCopied(false);
+                setShareModalOpen(true);
+              }}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all active:scale-95"
+            >
+              <Share2 size={14} />
+              Compartir
+            </button>
+          )}
           <button
             onClick={handleFinish}
             disabled={isFinishing}
@@ -1226,6 +1241,73 @@ export default function InteractivePreviewPage() {
           </div>
         </div>
       </div>
+
+      {/* Share modal */}
+      {shareModalOpen && previewUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setShareModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                  Compartir PoC
+                </h2>
+                <p className="mt-1 text-sm text-gray-500">
+                  Cualquier persona con este link podrá abrir el preview.
+                </p>
+              </div>
+              <button
+                onClick={() => setShareModalOpen(false)}
+                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="mt-5 flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 p-2">
+              <input
+                type="text"
+                readOnly
+                value={previewUrl}
+                onFocus={(e) => e.currentTarget.select()}
+                className="flex-1 bg-transparent px-2 py-1 text-sm text-gray-700 outline-none"
+              />
+              <button
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(previewUrl);
+                    setShareCopied(true);
+                    setTimeout(() => setShareCopied(false), 2000);
+                  } catch (err) {
+                    logger.warn('clipboard failed', { error: String(err) });
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 active:scale-95"
+              >
+                <Copy size={12} />
+                {shareCopied ? '¡Copiado!' : 'Copiar'}
+              </button>
+            </div>
+
+            <div className="mt-4 flex justify-end">
+              <a
+                href={previewUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+              >
+                <ExternalLink size={14} />
+                Abrir en pestaña nueva
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Toast notifications */}
       {toast.open && (

@@ -8,11 +8,6 @@ import { useI18n } from '../i18n'
 import { ONBOARDING_STORAGE_KEY, clearOnboardingState } from '../utils/onboardingStorage'
 import { useAppSelector } from '../store/hooks'
 import { useLogout } from '../hooks/useLogout'
-import { useQueryClient } from '@tanstack/react-query'
-import { recommendationApi } from '../services/recommendation'
-import { roadmapApi } from '../services/roadmap'
-import { diagnosisApi } from '../services/diagnosis'
-import { logger } from '../utils/logger'
 
 
 export default function DiscoveryProgressPage() {
@@ -113,21 +108,6 @@ export default function DiscoveryProgressPage() {
     } catch (e) { console.error('Error saving discovery state', e) }
   }, [sessionId, messages, status, discoverySummary, progress])
 
-  // Prefetch
-  const queryClient = useQueryClient()
-  const triggerPrefetch = (sid: string) => {
-    logger.debug("Prefetching diagnosis/recommendation/roadmap", { sessionId: sid })
-    void queryClient.prefetchQuery({ queryKey: ['diagnosis', sid], queryFn: () => diagnosisApi.analyze(sid), staleTime: 5 * 60 * 1000 })
-    void queryClient.prefetchQuery({ queryKey: ['recommendation', sid], queryFn: () => recommendationApi.generate(sid), staleTime: 5 * 60 * 1000 })
-    void queryClient.prefetchQuery({ queryKey: ['roadmap', sid], queryFn: () => roadmapApi.generate(sid), staleTime: 5 * 60 * 1000 })
-  }
-
-  useEffect(() => {
-    if ((status === 'ready_for_confirmation' || status === 'completed' || status === 'completed_with_low_confidence') && sessionId) {
-      triggerPrefetch(sessionId)
-    }
-  }, [status, sessionId])
-
   const handleSendMessage = async (message: string) => {
     const trimmed = message.trim()
     if (!trimmed || isLoading) return
@@ -161,9 +141,11 @@ export default function DiscoveryProgressPage() {
       if (response.progress) setProgress(response.progress)
       if (response.discovery_summary) setDiscoverySummary(response.discovery_summary)
 
-      if (response.status === 'completed' && response.diagnosis_endpoint) {
-        setTimeout(() => navigate(`/recommendation?session=${response.session_id}`), 2000)
-      }
+      // Do NOT auto-navigate when status === 'completed' — that would skip the
+      // summary screen entirely. The "Generar PoC" CTA at the bottom of the
+      // page (gated on `status in {completed, completed_with_low_confidence}`)
+      // lets the user review the discovery_summary and trigger generation
+      // explicitly.
     } catch (error: any) {
       console.error('Error during discovery:', error)
       const errorStatus = error?.response?.status
@@ -213,7 +195,7 @@ export default function DiscoveryProgressPage() {
       if (response.discovery_summary) setDiscoverySummary(response.discovery_summary)
       if (response.progress) setProgress(response.progress)
       setSessionId(response.session_id)
-      triggerPrefetch(response.session_id)
+      navigate(`/poc-generator?session=${response.session_id}`)
     } catch (error) { console.error('Error confirming synthesis:', error) }
     finally { setIsConfirming(false) }
   }
@@ -355,9 +337,9 @@ export default function DiscoveryProgressPage() {
         {/* Completion CTAs */}
         {(status === 'completed' || status === 'completed_with_low_confidence') && sessionId && (
           <div className="mt-6 flex flex-wrap gap-3 justify-end">
-            <button type="button" onClick={() => navigate(`/recommendation?session=${sessionId}`)}
+            <button type="button" onClick={() => navigate(`/poc-generator?session=${sessionId}`)}
               className="px-6 py-3 rounded-xl bg-indigo-600 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors">
-              {t('onboarding.cta.document')}
+              {t('recommendation.generatePoc')}
             </button>
           </div>
         )}

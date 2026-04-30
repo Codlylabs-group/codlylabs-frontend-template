@@ -19,7 +19,7 @@ export default function FinalCTASection() {
             {t('finalCTA.subtitle')}
           </p>
           <Link
-            to="/free-diagnostic"
+            to="/try"
             className="inline-flex items-center justify-center bg-white text-indigo-600 px-10 py-5 rounded-xl font-extrabold text-lg md:text-xl shadow-2xl hover:bg-indigo-50 transition-all active:scale-95"
           >
             {t('finalCTA.button')}

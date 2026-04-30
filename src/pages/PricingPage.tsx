@@ -64,31 +64,9 @@ export default function PricingPage() {
 
   const plans: PlanDef[] = [
     {
-      name: 'Free',
-      tier: 'free',
-      price: 0,
-      period: '',
-      description: es
-        ? 'Explorá la plataforma y generá tu primera validación de IA'
-        : 'Explore the platform and generate your first AI validation',
-      popular: false,
-      cta: es ? 'Empezar gratis' : 'Start free',
-      pocs: '3',
-      users: '1',
-      unlimitedUsers: false,
-      highlights: es
-        ? ['Sin tarjeta de crédito', 'Acceso al workspace completo']
-        : ['No credit card required', 'Full workspace access'],
-      segmentLabel: es ? 'Exploración' : 'Exploration',
-      segmentProblem: es ? '"Quiero ver si esto sirve para mi caso"' : '"I want to see if this works for my case"',
-      segmentMessage: es
-        ? 'Probá la plataforma sin compromiso y validá tu primera idea de IA.'
-        : 'Try the platform with no commitment and validate your first AI idea.',
-    },
-    {
       name: 'Starter',
       tier: 'starter',
-      price: annual ? 179 : 199,
+      price: annual ? 159 : 199,
       period: es ? '/mes' : '/mo',
       description: es
         ? 'Validá tu primera iniciativa de IA antes de invertir'
@@ -110,7 +88,7 @@ export default function PricingPage() {
     {
       name: 'Builder',
       tier: 'builder',
-      price: annual ? 359 : 399,
+      price: annual ? 319 : 399,
       period: es ? '/mes' : '/mo',
       description: es
         ? 'Probá y priorizá múltiples iniciativas de IA'
@@ -132,7 +110,7 @@ export default function PricingPage() {
     {
       name: 'Team',
       tier: 'team',
-      price: annual ? 719 : 799,
+      price: annual ? 639 : 799,
       period: es ? '/mes' : '/mo',
       description: es
         ? 'Validación sistemática de IA en toda tu organización'
@@ -154,7 +132,7 @@ export default function PricingPage() {
     {
       name: 'Growth',
       tier: 'growth',
-      price: annual ? 1349 : 1499,
+      price: annual ? 1199 : 1499,
       period: es ? '/mes' : '/mo',
       description: es
         ? 'Experimentación de IA a escala enterprise para consultoras'
@@ -165,8 +143,16 @@ export default function PricingPage() {
       users: es ? 'Ilimitados' : 'Unlimited',
       unlimitedUsers: true,
       highlights: es
-        ? ['Entregá estrategias de IA validadas a clientes', 'Ganá deals con validaciones production-ready']
-        : ['Deliver validated AI strategies to clients', 'Win deals with production-ready validations'],
+        ? [
+            'White label completo y previews persistentes con dominio propio',
+            'Generá PoCs en nombre de tus clientes con tu marca',
+            'API access básico para integrar con tu stack',
+          ]
+        : [
+            'Full white label and persistent previews with custom domain',
+            'Generate PoCs on behalf of clients under your brand',
+            'Basic API access to integrate with your stack',
+          ],
       segmentLabel: es ? 'Consultoras / Integradores' : 'Consultancies / Integrators',
       segmentProblem: es ? '"Necesitamos demostrar ROI de IA a clientes rápido"' : '"We need to prove AI ROI to clients fast"',
       segmentMessage: es
@@ -201,8 +187,15 @@ export default function PricingPage() {
   type CellValue = string | boolean
   interface FeatureRow {
     label: string
-    values: CellValue[] // one per plan, same order as `plans`
+    values: CellValue[] // one per plan, same order as `tablePlans` (Free + plans)
   }
+
+  const tablePlans = [{ name: 'Free', tier: 'free' }, ...plans.map((p) => ({ name: p.name, tier: p.tier }))]
+
+  const unlimited = es ? 'Ilimitados' : 'Unlimited'
+  const persistentPreviewValue = es ? '✓ (con dominio)' : '✓ (with domain)'
+  const addonValue = es ? '10 por $300' : '10 for $300'
+  const addonIncluded = es ? 'Incluido' : 'Included'
 
   const features: FeatureRow[] = [
     {
@@ -211,34 +204,54 @@ export default function PricingPage() {
     },
     {
       label: es ? 'Usuarios por Workspace' : 'Users per Workspace',
-      values: [
-        '1',
-        es ? 'Ilimitados' : 'Unlimited',
-        es ? 'Ilimitados' : 'Unlimited',
-        es ? 'Ilimitados' : 'Unlimited',
-        es ? 'Ilimitados' : 'Unlimited',
-        es ? 'Ilimitados' : 'Unlimited',
-      ],
+      values: ['1', unlimited, unlimited, unlimited, unlimited, unlimited],
     },
     {
-      label: es ? 'Preview compartible' : 'Shareable preview',
+      label: es ? 'Preview efímero (2h)' : 'Ephemeral preview (2h)',
       values: [true, true, true, true, true, true],
     },
     {
-      label: es ? 'Descarga ZIP' : 'ZIP download',
+      label: es ? 'Previews persistentes' : 'Persistent previews',
+      values: [false, false, false, false, persistentPreviewValue, persistentPreviewValue],
+    },
+    {
+      label: es ? 'Descarga ZIP (Docker + CI/CD)' : 'ZIP download (Docker + CI/CD)',
       values: [false, true, true, true, true, true],
+    },
+    {
+      label: es ? 'Editor agentico interactivo' : 'Interactive agentic editor',
+      values: [false, false, false, true, true, true],
+    },
+    {
+      label: es ? 'White label completo' : 'Full white label',
+      values: [false, false, false, false, true, true],
     },
     {
       label: 'API access',
       values: [false, false, false, false, es ? 'Básico' : 'Basic', es ? 'Avanzada' : 'Advanced'],
     },
     {
-      label: es ? 'Soporte' : 'Support',
-      values: [false, 'Online', 'Online', 'Online', 'Online', 'Online'],
+      label: es ? 'On-premise deployment' : 'On-premise deployment',
+      values: [false, false, false, false, false, true],
     },
     {
-      label: 'Codly-GPT',
+      label: es ? 'Codly-GPT (asistente IA contextual)' : 'Codly-GPT (contextual AI assistant)',
       values: [false, false, false, false, false, true],
+    },
+    {
+      label: es ? 'Soporte' : 'Support',
+      values: [
+        es ? 'Documentación' : 'Documentation',
+        es ? 'Email 24h' : 'Email 24h',
+        es ? 'Email 24h' : 'Email 24h',
+        es ? 'Prioritario 4h' : 'Priority 4h',
+        es ? 'Customer success digital' : 'Digital customer success',
+        es ? 'CS manager dedicado' : 'Dedicated CS manager',
+      ],
+    },
+    {
+      label: es ? 'Add-on validaciones adicionales' : 'Add-on extra validations',
+      values: [false, false, false, false, addonValue, addonIncluded],
     },
   ]
 
@@ -262,8 +275,9 @@ export default function PricingPage() {
             <ArrowLeft className="w-4 h-4" />
             <span className="text-sm font-medium">{es ? 'Inicio' : 'Home'}</span>
           </Link>
-          <Link to="/" className="text-xl font-bold text-indigo-600" style={{ fontFamily: 'Manrope, sans-serif' }}>
-            CodlyLabs
+          <Link to="/" className="flex items-center gap-2 text-xl font-bold text-indigo-600" style={{ fontFamily: 'Manrope, sans-serif' }}>
+            <img src="/symbol.svg" alt="" className="h-6 w-6" />
+            <span>CodlyLabs</span>
           </Link>
           <div className="w-20" />
         </div>
@@ -302,13 +316,13 @@ export default function PricingPage() {
             </span>
             {annual && (
               <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                -10%
+                -20%
               </span>
             )}
           </div>
 
           {/* Plan cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 max-w-7xl mx-auto">
             {plans.map((plan) => {
               const isSelected = selectedTier === plan.tier
               return (
@@ -412,7 +426,7 @@ export default function PricingPage() {
           </div>
 
           {/* Segment cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 max-w-7xl mx-auto mt-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 max-w-7xl mx-auto mt-4">
             {plans.map((plan) => (
               <div
                 key={`seg-${plan.tier}`}
@@ -423,6 +437,22 @@ export default function PricingPage() {
                 <p className="text-xs text-gray-600 leading-relaxed">{plan.segmentMessage}</p>
               </div>
             ))}
+          </div>
+
+          {/* Free CTA */}
+          <div className="flex flex-col items-center mt-12">
+            <button
+              type="button"
+              onClick={() => navigate('/register')}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-200 transition-all"
+            >
+              {es ? 'Empezar gratis' : 'Start free'}
+            </button>
+            <p className="text-xs text-gray-500 mt-2">
+              {es
+                ? '3 validaciones gratis · sin tarjeta de crédito'
+                : '3 free validations · no credit card required'}
+            </p>
           </div>
 
           {/* ── Comparison table ── */}
@@ -438,7 +468,7 @@ export default function PricingPage() {
                     <th className="text-left text-sm font-medium text-gray-500 py-4 px-5 w-[220px]">
                       {es ? 'Característica' : 'Feature'}
                     </th>
-                    {plans.map((plan) => (
+                    {tablePlans.map((plan) => (
                       <th
                         key={plan.tier}
                         className={`text-center text-sm font-bold py-4 px-3 transition-colors ${
@@ -463,7 +493,7 @@ export default function PricingPage() {
                         <td
                           key={j}
                           className={`text-center py-3.5 px-3 transition-colors ${
-                            selectedTier === plans[j]?.tier ? 'bg-indigo-50/30' : ''
+                            selectedTier === tablePlans[j]?.tier ? 'bg-indigo-50/30' : ''
                           }`}
                         >
                           {renderCell(val)}

@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { BrainCircuit, Cpu } from 'lucide-react'
 
 import type { GenerationProgressStep } from '../services/pocGenerator'
@@ -37,10 +37,39 @@ function renderTitle(
 
 export function SimulatedThoughts({ t, steps = [], status = 'in_progress' }: SimulatedThoughtsProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null)
+  const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [steps.length, status])
+  }, [steps.length, status, now])
+
+  useEffect(() => {
+    if (status !== 'in_progress') return
+    const id = window.setInterval(() => setNow(Date.now()), 1000)
+    return () => window.clearInterval(id)
+  }, [status])
+
+  const liveStep = useMemo(() => {
+    if (status !== 'in_progress') return null
+    const lastStep = steps[steps.length - 1]
+    const lastTimestamp = lastStep?.timestamp ? Date.parse(lastStep.timestamp) : NaN
+    const startedAt = Number.isFinite(lastTimestamp) ? lastTimestamp : now
+    const elapsed = Math.max(0, Math.floor((now - startedAt) / 1000))
+    if (steps.length > 0 && elapsed < 6) return null
+
+    const title = (lastStep?.title || '').toLowerCase()
+    const message = (lastStep?.message || '').toLowerCase()
+    if (title.includes('backend') || message.includes('backend')) {
+      return t('thoughts.live.backend', { elapsed })
+    }
+    if (title.includes('frontend') || message.includes('frontend')) {
+      return t('thoughts.live.frontend', { elapsed })
+    }
+    if (title.includes('build') || message.includes('compil')) {
+      return t('thoughts.live.build', { elapsed })
+    }
+    return t('thoughts.live.generic', { elapsed })
+  }, [now, status, steps, t])
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm transition-all duration-500">
@@ -96,6 +125,19 @@ export function SimulatedThoughts({ t, steps = [], status = 'in_progress' }: Sim
                   </li>
                 )
               })}
+              {liveStep && (
+                <li className="flex gap-3">
+                  <span className="mt-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-[10px] font-semibold text-white">
+                    <Cpu className="h-3 w-3 animate-pulse" />
+                  </span>
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-brand-500">
+                      {t('thoughts.source.system')} • {t('thoughts.live.title')}
+                    </p>
+                    <p className="text-sm text-gray-700">{liveStep}</p>
+                  </div>
+                </li>
+              )}
               <div ref={bottomRef} />
             </ul>
           )}

@@ -205,7 +205,7 @@ export interface AnonymousGenerateRequest {
   language?: 'en' | 'es';
   template_id?: string;
   generation_mode?: 'auto' | 'app' | 'poc';
-  vertical?: 'fintech' | 'retail' | 'healthcare' | 'general';
+  vertical?: string;
 }
 
 export interface AnonymousGenerateResponse {

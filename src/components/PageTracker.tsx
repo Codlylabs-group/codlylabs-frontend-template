@@ -20,10 +20,7 @@ const getPageTitle = (path: string): string => {
     '/vertical-pack': 'Vertical Pack',
     '/onboarding': 'Onboarding',
     '/about-platform': 'About Platform',
-    '/diagnosis': 'Diagnosis',
-    '/recommendation': 'Recommendation',
     '/poc-generator': 'POC Generator',
-    '/roadmap': 'Roadmap',
     '/analytics': 'Analytics',
   }
 

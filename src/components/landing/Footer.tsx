@@ -8,8 +8,9 @@ export default function Footer() {
   return (
     <footer className="bg-gray-900 text-white rounded-t-xl">
       <div className="flex flex-col md:flex-row justify-between items-center py-12 px-8 max-w-7xl mx-auto gap-8">
-        <div className="text-xl font-bold text-white tracking-tight" style={{ fontFamily: 'Manrope, sans-serif' }}>
-          CodlyLabs
+        <div className="flex items-center gap-2 text-xl font-bold text-white tracking-tight" style={{ fontFamily: 'Manrope, sans-serif' }}>
+          <img src="/symbol_white.svg" alt="" className="h-6 w-6" />
+          <span>CodlyLabs</span>
         </div>
         <div className="flex flex-wrap justify-center gap-8">
           <Link to="/policies" className="text-slate-400 hover:text-white transition-colors text-sm">

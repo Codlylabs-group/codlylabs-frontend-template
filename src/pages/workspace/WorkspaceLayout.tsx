@@ -22,7 +22,6 @@ import {
   Home,
   Layers,
   LayoutDashboard,
-  Lightbulb,
   Loader2,
   LogOut,
   Mail,
@@ -1062,17 +1061,6 @@ export default function WorkspaceLayout() {
   const notifications = useMemo<NotificationItem[]>(() => {
     if (!context) return []
     const items: NotificationItem[] = []
-
-    if (context.summary.pending_recommendations > 0) {
-      items.push({
-        id: 'pending-recommendations',
-        icon: Lightbulb,
-        iconColor: '#F59E0B',
-        title: t('ws.pendingRecsNotif').replace('{count}', String(context.summary.pending_recommendations)),
-        description: t('ws.pendingRecsDesc'),
-        href: '/workspace/recommendation',
-      })
-    }
 
     if (context.summary.active_previews > 0) {
       items.push({

@@ -63,8 +63,9 @@ export default function HomePage() {
         scrolled ? 'bg-white/80 backdrop-blur-xl shadow-sm' : 'bg-transparent'
       }`}>
         <div className="mx-auto flex h-20 max-w-[1440px] items-center gap-8 px-8 xl:gap-12 xl:px-10">
-          <Link to="/" className="shrink-0 text-2xl font-bold text-indigo-600 tracking-tight" style={{ fontFamily: 'Manrope, sans-serif' }}>
-            CodlyLabs
+          <Link to="/" className="shrink-0 flex items-center gap-2 text-2xl font-bold text-indigo-600 tracking-tight" style={{ fontFamily: 'Manrope, sans-serif' }}>
+            <img src="/symbol.svg" alt="" className="h-7 w-7" />
+            <span>CodlyLabs</span>
           </Link>
 
           <div className="hidden flex-1 items-center justify-center gap-6 lg:gap-8 xl:gap-10 md:flex">

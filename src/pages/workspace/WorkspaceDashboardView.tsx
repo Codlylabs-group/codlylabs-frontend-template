@@ -380,8 +380,7 @@ export default function WorkspaceDashboardView() {
         <div className="relative">
           <h2 className="mb-1 text-xl font-semibold">{t('ws.welcomeTo')} {workspaceDisplayName}</h2>
           <p className="text-sm text-blue-100">
-            {t('ws.youHave')} {context.summary.pending_recommendations} {t('ws.pendingRecs')}{' '}
-            {context.summary.active_previews} {t('ws.activePreviewsSuffix')}
+            {t('ws.youHave')} {context.summary.active_previews} {t('ws.activePreviewsSuffix')}
           </p>
         </div>
       </div>

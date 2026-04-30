@@ -10,6 +10,18 @@ const VALID_VERTICALS: ReadonlyArray<SelectableVertical> = [
   'fintech',
   'retail',
   'healthcare',
+  'legal',
+  'sales',
+  'manufacturing',
+  'hr',
+  'logistics',
+  'cybersecurity',
+  'realestate',
+  'insurance',
+  'education',
+  'energy',
+  'public_sector',
+  'agriculture',
   'general',
 ]
 

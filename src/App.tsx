@@ -33,10 +33,7 @@ const PoliciesPage = lazy(() => import('./pages/PoliciesPage'))
 // Onboarding / Discovery flow
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage'))
 const DiscoveryProgressPage = lazy(() => import('./pages/DiscoveryProgressPage'))
-const FreeDiagnosticPage = lazy(() => import('./pages/FreeDiagnosticPage'))
-const RecommendationPage = lazy(() => import('./pages/RecommendationPage'))
 const PocGeneratorPage = lazy(() => import('./pages/PocGeneratorPage'))
-const RoadmapPage = lazy(() => import('./pages/RoadmapPage'))
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'))
 const ShadowModePage = lazy(() => import('./pages/ShadowModePage'))
 
@@ -59,9 +56,8 @@ const WorkspaceDashboardView = lazy(() => import('./pages/workspace/WorkspaceDas
 const WorkspaceProjectsView = lazy(() => import('./pages/workspace/WorkspaceProjectsView'))
 const WorkspaceMembersView = lazy(() => import('./pages/workspace/WorkspaceMembersView'))
 const WorkspacePreviewsView = lazy(() => import('./pages/workspace/WorkspacePreviewsView'))
-const WorkspaceRecommendationView = lazy(() => import('./pages/workspace/WorkspaceRecommendationView'))
 const WorkspaceDiscoveryView = lazy(() => import('./pages/workspace/WorkspaceDiscoveryView'))
-const WorkspaceDiagnosticView = lazy(() => import('./pages/workspace/WorkspaceDiagnosticView'))
+const WorkspaceDiscoverySummaryView = lazy(() => import('./pages/workspace/WorkspaceDiscoverySummaryView'))
 const WorkspacePocGeneratorView = lazy(() => import('./pages/workspace/WorkspacePocGeneratorView'))
 const WorkspaceBillingView = lazy(() => import('./pages/workspace/WorkspaceBillingView'))
 const WorkspaceSettingsView = lazy(() => import('./pages/workspace/WorkspaceSettingsView'))
@@ -199,10 +195,7 @@ function App() {
                 <Route path="/onboarding" element={<OnboardingPage />} />
                 <Route path="/discovery-progress" element={<DiscoveryProgressPage />} />
                 <Route path="/ai-architect" element={<AgenticRedirectPage />} />
-                <Route path="/free-diagnostic" element={<FreeDiagnosticPage />} />
-                <Route path="/recommendation" element={<RecommendationPage />} />
                 <Route path="/poc-generator" element={<PocGeneratorPage />} />
-                <Route path="/roadmap" element={<RoadmapPage />} />
                 <Route path="/analytics" element={<AnalyticsPage />} />
                 <Route path="/shadow-mode" element={<ShadowModePage />} />
 
@@ -233,9 +226,8 @@ function App() {
                   <Route path="verticals/:slug" element={<WorkspaceVerticalPackDetailView />} />
                   <Route path="members" element={<WorkspaceMembersView />} />
                   <Route path="previews" element={<WorkspacePreviewsView />} />
-                  <Route path="recommendation" element={<WorkspaceRecommendationView />} />
                   <Route path="discovery" element={<WorkspaceDiscoveryView />} />
-                  <Route path="diagnosis" element={<WorkspaceDiagnosticView />} />
+                  <Route path="summary" element={<WorkspaceDiscoverySummaryView />} />
                   <Route path="poc-generator" element={<WorkspacePocGeneratorView />} />
                   <Route path="billing" element={<WorkspaceBillingView />} />
                   <Route path="settings" element={<WorkspaceSettingsView />} />

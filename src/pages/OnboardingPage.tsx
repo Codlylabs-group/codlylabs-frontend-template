@@ -2,12 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Upload, ArrowRight, Shield, Linkedin, ArrowLeft, User, Loader2, Lock, Globe, ChevronDown } from 'lucide-react';
 import { useI18n } from '../i18n';
-import { AgenticOnboarding } from './AgenticOnboarding';
 import { api } from '../services/api';
 import { authApi, getAndClearAuthReturnUrl } from '../services/auth';
 import { plgService } from '../services/plg';
 import { discoveryService } from '../services/discovery';
-import { onboardingApi } from '../services/onboarding';
 import { setSessionName } from '../utils/sessionName';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { clearAuth, setAuthData } from '../store/userSlice';
@@ -199,7 +197,7 @@ export default function OnboardingPage() {
       // Associate user with session if authenticated
       if (userData && userData.full_name) {
         try {
-          const result = await onboardingApi.associateUserWithSession(sessionId);
+          const result = await discoveryService.associateUserWithSession(sessionId);
           if (result.success && result.user_name) {
             setSessionName(sessionId, result.user_name);
           }
@@ -564,5 +562,5 @@ export default function OnboardingPage() {
 
 // Sub-component wrapper for the route logic
 export const AgenticRedirect = () => {
-    return <AgenticOnboarding />;
+    return <OnboardingPage />;
 };
