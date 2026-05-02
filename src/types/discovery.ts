@@ -26,6 +26,7 @@ export interface VolumeIndicator {
 export interface DataLandscape {
   data_types_mentioned: string[];
   data_sources: string[];
+  data_quality?: string | null;
   volume_indicators?: VolumeIndicator;
 }
 
@@ -43,6 +44,27 @@ export interface AdditionalContext {
   pain_points: string[];
   success_metrics: string[];
   stakeholders_mentioned: string[];
+  expected_impact?: string | null;
+}
+
+export interface CurrentProcess {
+  description: string;
+  involved_roles: string[];
+  tools_used: string[];
+  workflow_steps: string[];
+  time_cost?: string | null;
+  monetary_cost?: string | null;
+}
+
+export interface PainPoint {
+  description: string;
+  impact: string;
+  frequency: string;
+}
+
+export interface Stakeholder {
+  role: string;
+  involvement: string;
 }
 
 export interface ConversationMetadata {
@@ -72,13 +94,16 @@ export interface DiscoverySummary {
   organization_context: OrganizationContext;
   data_landscape: DataLandscape;
   constraints: Constraints;
+  current_process?: CurrentProcess | null;
+  pain_points_detailed?: PainPoint[];
+  stakeholders_detailed?: Stakeholder[];
   additional_context: AdditionalContext;
   conversation_metadata: ConversationMetadata;
   full_conversation: Message[];
   detected_signals: DetectedSignals;
   agent_performance: AgentPerformance;
   created_at: string;
-  data_type?: string;  // Tipo de datos principal (image, audio, text, etc.) - usado para inferir POC type
+  data_type?: string;
 }
 
 // API Request/Response Types

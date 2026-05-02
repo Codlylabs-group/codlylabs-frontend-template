@@ -200,6 +200,7 @@ function Sidebar({
 
   return (
     <aside
+      data-print-hide="chrome"
       className={`fixed left-0 top-0 z-30 flex h-screen flex-col border-r border-gray-200 bg-white transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}
     >
       <div className="flex h-16 items-center gap-3 border-b border-gray-100 px-4">
@@ -622,6 +623,7 @@ function TopBar({
 
   return (
     <header
+      data-print-hide="chrome"
       className="fixed right-0 top-0 z-20 flex h-16 items-center border-b border-gray-200 bg-white/80 px-6 backdrop-blur-sm transition-all duration-300"
       style={{ left: sidebarCollapsed ? 64 : 256 }}
     >
@@ -1174,7 +1176,11 @@ export default function WorkspaceLayout() {
         onLogout={handleLogout}
       />
 
-      <main className="pt-16 transition-all duration-300" style={{ marginLeft: sidebarCollapsed ? 64 : 256 }}>
+      <main
+        data-print-document="true"
+        className="pt-16 transition-all duration-300"
+        style={{ marginLeft: sidebarCollapsed ? 64 : 256 }}
+      >
         <div className="mx-auto max-w-7xl p-6">
           {error && (
             <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -1184,7 +1190,10 @@ export default function WorkspaceLayout() {
 
           <Outlet context={outletContext} />
 
-          <footer className="mt-10 flex items-center justify-between border-t border-gray-200 pt-4">
+          <footer
+            data-print-hide="chrome"
+            className="mt-10 flex items-center justify-between border-t border-gray-200 pt-4"
+          >
             <div className="flex items-center gap-4">
               <PoweredByBadge variant="dark" />
               <span className="text-xs text-gray-300">·</span>

@@ -124,3 +124,44 @@ body {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
+
+/* ─── Print layout ──────────────────────────────────────────── */
+@media print {
+  @page {
+    size: A4;
+    margin: 18mm 16mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #111827 !important;
+  }
+
+  /* Force backgrounds (logos, accents) to render on paper */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide workspace chrome (sidebar, topbar, footer) when printing */
+  [data-print-hide="chrome"] {
+    display: none !important;
+  }
+
+  /* Strip the workspace main wrapper paddings/margins */
+  main[data-print-document="true"] {
+    margin-left: 0 !important;
+    padding-top: 0 !important;
+    transition: none !important;
+  }
+
+  main[data-print-document="true"] > div {
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  main[data-print-document="true"] footer {
+    display: none !important;
+  }
+}
