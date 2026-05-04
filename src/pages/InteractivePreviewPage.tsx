@@ -81,6 +81,72 @@ type ValidationPhase = "initializing" | "validating" | "fixing" | "complete" | "
 // under React.StrictMode double-mount in development.
 const previewCreateRequests = new Map<string, Promise<any>>();
 
+// Espejo de _BACKEND_INTENT_KEYWORDS / _derive_initial_plan en
+// backend/app/api/v1/interactive_editor.py — los mantenemos sincronizados
+// para que el plan que ve el usuario al mandar el mensaje coincida con el que
+// el backend va a emitir vía WebSocket. Si después llega el `editor_plan` real
+// del backend, sobreescribimos el local.
+const BACKEND_INTENT_KEYWORDS = [
+  'endpoint', 'endpoints', 'backend', 'api ', '/api', 'ruta', 'rutas',
+  'servicio', 'service', 'guardar', 'persistir', 'almacenar', 'base de datos',
+  'database', 'sqlite', 'postgres', 'redis', 'qdrant', 'fastapi', 'router',
+  'modelo', 'model', 'ml', 'ia', 'llm', 'gpt', 'claude', 'openai', 'anthropic',
+  'embedding', 'vector', 'rag', 'ingest', 'procesar', 'subir', 'upload',
+  'descargar', 'download', 'auth', 'login', 'registrar', 'register', 'webhook',
+  'cron', 'stripe', 'paypal',
+];
+
+// Espejo de _NEW_COMPONENT_KEYWORDS / _request_hints_new_component en el
+// backend. Cuando el pedido implica UI nueva (visor, modal, panel, etc.) el
+// plan local incluye un paso explícito "Crear componente nuevo" para que el
+// LLM no infle pages existentes.
+const NEW_COMPONENT_KEYWORDS = [
+  'visor', 'viewer', 'modal', 'dialog', 'popup', 'panel',
+  'selector', 'picker', 'tabla', 'table', 'grid',
+  'formulario', 'form', 'wizard',
+  'dashboard', 'tablero', 'gráfico', 'grafico', 'chart',
+  'vista', 'view', 'componente', 'component',
+  'card', 'tarjeta', 'lista', 'list',
+  'menu', 'menú', 'navbar', 'sidebar', 'header', 'footer',
+  'preview', 'previa', 'previsualiza',
+  'uploader', 'cargador',
+  'chat', 'conversa',
+];
+
+function requestHintsBackend(message: string): boolean {
+  const text = (message || '').toLowerCase();
+  return BACKEND_INTENT_KEYWORDS.some((kw) => text.includes(kw));
+}
+
+function requestHintsNewComponent(message: string): boolean {
+  const text = (message || '').toLowerCase();
+  return NEW_COMPONENT_KEYWORDS.some((kw) => text.includes(kw));
+}
+
+function deriveLocalPlan(message: string): string[] {
+  const text = (message || '').toLowerCase();
+  const steps: string[] = ['Analizar el pedido'];
+  const layoutHints = /\b(layout|sidebar|menu|header|navbar|tema|color|estilo)\b/;
+  if (layoutHints.test(text)) {
+    steps.push('Localizar layout/navegación a tocar');
+  } else {
+    steps.push('Identificar archivos relevantes');
+  }
+  if (requestHintsBackend(message)) {
+    steps.push('Crear/editar endpoint en backend');
+  }
+  if (requestHintsNewComponent(message)) {
+    steps.push('Crear componente nuevo en frontend/src/components/');
+    steps.push('Insertar el componente en la page (import + uso)');
+  } else if (requestHintsBackend(message)) {
+    steps.push('Conectar el frontend al endpoint nuevo');
+  } else {
+    steps.push('Aplicar cambios en frontend');
+  }
+  steps.push('Validar sintaxis y preview');
+  return steps;
+}
+
 const isLoopbackHost = (host: string): boolean =>
   host === "localhost" || host === "127.0.0.1" || host === "::1";
 
@@ -229,7 +295,10 @@ export default function InteractivePreviewPage() {
 
   // State
   const [messages, setMessages] = useState<Message[]>([]);
-  const [agentTurn, setAgentTurn] = useState<AgentTurn | null>(null);
+  // Lista de turnos del agente. Cada turno se asocia al mensaje del usuario
+  // que lo originó (`userMessageId`) y se renderiza JUSTO debajo de ese
+  // mensaje, manteniendo la cronología natural del chat.
+  const [agentTurns, setAgentTurns] = useState<AgentTurn[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -311,6 +380,30 @@ export default function InteractivePreviewPage() {
   useEffect(() => {
     previewUrlRef.current = previewUrl;
   }, [previewUrl]);
+
+  // Aplica una mutación al ÚLTIMO turno activo (el que no está completed/failed).
+  // Si no hay ningún turno activo, opcionalmente arranca uno nuevo. Centraliza
+  // la lógica para que los handlers del WS no contaminen turnos cerrados con
+  // eventos rezagados (lo que antes causaba "el chat queda enganchado al
+  // pedido anterior").
+  const updateActiveTurn = useCallback(
+    (
+      updater: (turn: AgentTurn) => AgentTurn,
+      options?: { startIfMissing?: () => AgentTurn },
+    ) => {
+      setAgentTurns((prev) => {
+        const last = prev.length > 0 ? prev[prev.length - 1] : null;
+        if (!last || last.completed || last.failed) {
+          if (options?.startIfMissing) {
+            return [...prev, options.startIfMissing()];
+          }
+          return prev;
+        }
+        return [...prev.slice(0, -1), updater(last)];
+      });
+    },
+    [],
+  );
 
   const appendAgentMessage = useCallback((data: AgentChatPayload) => {
     setMessages((prev) => {
@@ -541,11 +634,11 @@ export default function InteractivePreviewPage() {
       if (recovering || cancelled) return;
       recovering = true;
       try {
-        setToast({
-          open: true,
-          message: t('editor.toast.disconnected'),
-          severity: "info",
-        });
+        // El reintento es silencioso a propósito: el preview puede tardar unos
+        // segundos en estar listo tras un cambio (especialmente en backend) y
+        // mostrar "se desconectó" hace pensar que algo se rompió cuando solo
+        // se está reconciliando. Si la recuperación falla del todo, queda log.
+        logger.debug("Preview readiness fallback: attempting recovery");
 
         const recreated = await createOrGetPreview(pocId);
         setPreviewUrl(normalizePreviewUrl(recreated.preview_url));
@@ -699,16 +792,61 @@ export default function InteractivePreviewPage() {
               setIsSending(false);
               break;
 
-            case "editor_plan":
-              setAgentTurn({
-                id: String(Date.now()),
-                plan: Array.isArray(data.steps) ? data.steps : null,
-                events: [],
-                clarification: null,
-                completed: false,
-                failed: false,
-              });
+            case "editor_plan": {
+              const steps = Array.isArray(data.steps) ? data.steps : null;
+              // Sobreescribe el plan del turno actual si está activo (caso
+              // normal: el front lo pre-pobló y ahora llega el real). Si no
+              // hay turno activo, NO arrancamos uno nuevo desde acá — el WS
+              // puede llegar antes de que sendMessage haya hecho push del
+              // turno; en ese caso lo agarrá el sendMessage local y luego
+              // este handler quedará sin nada que actualizar.
+              updateActiveTurn(
+                (turn) => ({ ...turn, plan: steps ?? turn.plan }),
+                {
+                  startIfMissing: () => ({
+                    id: String(Date.now()),
+                    plan: steps,
+                    events: [],
+                    fileChanges: [],
+                    clarification: null,
+                    completed: false,
+                    failed: false,
+                  }),
+                },
+              );
               break;
+            }
+
+            case "editor_file_changed": {
+              const entry = {
+                path: String(data.path || ''),
+                action: (data.action || 'modified') as 'created' | 'modified' | 'deleted',
+                summary: data.summary ? String(data.summary) : '',
+                ts: Date.now(),
+              };
+              if (!entry.path) break;
+              updateActiveTurn(
+                (turn) => {
+                  const existing = turn.fileChanges.findIndex(c => c.path === entry.path);
+                  const next = [...turn.fileChanges];
+                  if (existing >= 0) next[existing] = entry;
+                  else next.push(entry);
+                  return { ...turn, fileChanges: next };
+                },
+                {
+                  startIfMissing: () => ({
+                    id: String(Date.now()),
+                    plan: null,
+                    events: [],
+                    fileChanges: [entry],
+                    clarification: null,
+                    completed: false,
+                    failed: false,
+                  }),
+                },
+              );
+              break;
+            }
 
             case "editor_thinking_delta":
             case "editor_message_delta": {
@@ -718,37 +856,37 @@ export default function InteractivePreviewPage() {
                 ? "editor_thinking"
                 : "editor_message";
               const delta = data.content || "";
-              setAgentTurn((prev) => {
-                if (!prev) {
-                  return {
+              updateActiveTurn(
+                (turn) => {
+                  const events = turn.events;
+                  for (let i = events.length - 1; i >= 0; i--) {
+                    if (events[i].type === targetType) {
+                      const next = [...events];
+                      next[i] = { ...events[i], content: (events[i].content || "") + delta };
+                      return { ...turn, events: next };
+                    }
+                    if (
+                      events[i].type === "editor_tool_use" ||
+                      events[i].type === "editor_tool_result" ||
+                      events[i].type === "editor_executing"
+                    ) {
+                      break;
+                    }
+                  }
+                  return { ...turn, events: [...events, { type: targetType, content: delta }] };
+                },
+                {
+                  startIfMissing: () => ({
                     id: String(Date.now()),
                     plan: null,
                     events: [{ type: targetType, content: delta }],
+                    fileChanges: [],
                     clarification: null,
                     completed: false,
                     failed: false,
-                  };
-                }
-                // Buscar el ÚLTIMO evento del targetType y actualizarlo.
-                const events = prev.events;
-                for (let i = events.length - 1; i >= 0; i--) {
-                  if (events[i].type === targetType) {
-                    const next = [...events];
-                    next[i] = { ...events[i], content: (events[i].content || "") + delta };
-                    return { ...prev, events: next };
-                  }
-                  // Si entremedio apareció otro tipo de evento (ej. tool_use),
-                  // el bloque previo ya se cerró — abrir uno nuevo.
-                  if (
-                    events[i].type === "editor_tool_use" ||
-                    events[i].type === "editor_tool_result" ||
-                    events[i].type === "editor_executing"
-                  ) {
-                    break;
-                  }
-                }
-                return { ...prev, events: [...events, { type: targetType, content: delta }] };
-              });
+                  }),
+                },
+              );
               break;
             }
 
@@ -768,53 +906,67 @@ export default function InteractivePreviewPage() {
                 tool_name: data.tool_name,
                 tool_input: data.tool_input,
                 tool_result: data.tool_result,
+                duration_ms: data.duration_ms,
               };
-              setAgentTurn((prev) => {
-                if (!prev) {
-                  return {
+              updateActiveTurn(
+                (turn) => ({ ...turn, events: [...turn.events, evt] }),
+                {
+                  startIfMissing: () => ({
                     id: String(Date.now()),
                     plan: null,
                     events: [evt],
+                    fileChanges: [],
                     clarification: null,
                     completed: false,
                     failed: false,
-                  };
-                }
-                return { ...prev, events: [...prev.events, evt] };
-              });
+                  }),
+                },
+              );
               break;
             }
 
             case "editor_clarification_needed":
-              setAgentTurn((prev) => ({
-                id: prev?.id || String(Date.now()),
-                plan: prev?.plan || null,
-                events: prev?.events || [],
-                clarification: {
-                  question: data.question || data.content || '',
-                  options: Array.isArray(data.options) ? data.options : undefined,
+              updateActiveTurn(
+                (turn) => ({
+                  ...turn,
+                  clarification: {
+                    question: data.question || data.content || '',
+                    options: Array.isArray(data.options) ? data.options : undefined,
+                  },
+                }),
+                {
+                  startIfMissing: () => ({
+                    id: String(Date.now()),
+                    plan: null,
+                    events: [],
+                    fileChanges: [],
+                    clarification: {
+                      question: data.question || data.content || '',
+                      options: Array.isArray(data.options) ? data.options : undefined,
+                    },
+                    completed: false,
+                    failed: false,
+                  }),
                 },
-                completed: false,
-                failed: false,
-              }));
+              );
               break;
 
             case "editor_completed":
-              setAgentTurn((prev) => prev ? {
-                ...prev,
+              updateActiveTurn((turn) => ({
+                ...turn,
                 completed: true,
                 summary: data.summary,
                 clarification: null,
-              } : null);
+              }));
               break;
 
             case "editor_failed":
-              setAgentTurn((prev) => prev ? {
-                ...prev,
+              updateActiveTurn((turn) => ({
+                ...turn,
                 failed: true,
                 summary: data.summary,
                 clarification: null,
-              } : null);
+              }));
               break;
 
             case "file_changed":
@@ -936,6 +1088,23 @@ export default function InteractivePreviewPage() {
     setIsSending(true);
     setShowExamples(false);
     wsResponseReceivedRef.current = false;
+
+    // Pre-poblamos un nuevo turno asociado a este mensaje. El render del
+    // chat intercala cada turno DEBAJO del mensaje del usuario que lo
+    // originó, manteniendo el orden cronológico (msg → plan/thinking → msg → ...).
+    setAgentTurns((prev) => [
+      ...prev,
+      {
+        id: `turn-${Date.now()}`,
+        userMessageId: userMessage.id,
+        plan: deriveLocalPlan(userMessage.content),
+        events: [],
+        fileChanges: [],
+        clarification: null,
+        completed: false,
+        failed: false,
+      },
+    ]);
 
     try {
       // Build conversation history
@@ -1088,18 +1257,54 @@ export default function InteractivePreviewPage() {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-5">
-            {agentTurn && pocId && (
-              <div className="mb-4">
-                <AgentActivityFeed
-                  pocId={pocId}
-                  turn={agentTurn}
-                  onClarificationSent={() => setAgentTurn((prev) => prev ? { ...prev, clarification: null } : null)}
-                />
-              </div>
-            )}
-            {messages.map((message) => (
-              <MessageBubble key={message.id} message={message} />
-            ))}
+            {messages
+              .filter((m) => {
+                // Ocultá el saludo en cuanto el agente arranca a trabajar para
+                // que no compita visualmente con el thinking / la respuesta.
+                if (m.id === 'welcome' && (agentTurns.length > 0 || isSending || messages.length > 1)) {
+                  return false
+                }
+                return true
+              })
+              .map((message) => {
+                // Render intercalado: cada mensaje del usuario seguido del
+                // turno del agente que lo originó (si existe).
+                const correlatedTurns = agentTurns.filter((t) => t.userMessageId === message.id)
+                return (
+                  <div key={message.id}>
+                    <MessageBubble message={message} />
+                    {pocId && correlatedTurns.map((turn) => (
+                      <div key={turn.id} className="mb-4 mt-2">
+                        <AgentActivityFeed
+                          pocId={pocId}
+                          turn={turn}
+                          onClarificationSent={() =>
+                            setAgentTurns((prev) =>
+                              prev.map((t) => (t.id === turn.id ? { ...t, clarification: null } : t)),
+                            )
+                          }
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )
+              })}
+            {/* Turnos sin mensaje correlado (defensa: WS llegó antes que sendMessage). */}
+            {pocId && agentTurns
+              .filter((t) => !t.userMessageId)
+              .map((turn) => (
+                <div key={turn.id} className="mb-4">
+                  <AgentActivityFeed
+                    pocId={pocId}
+                    turn={turn}
+                    onClarificationSent={() =>
+                      setAgentTurns((prev) =>
+                        prev.map((t) => (t.id === turn.id ? { ...t, clarification: null } : t)),
+                      )
+                    }
+                  />
+                </div>
+              ))}
             {isSending && (
               <div className="flex items-center gap-2 text-gray-400 my-2">
                 <div className="flex gap-1">

@@ -10,6 +10,7 @@ export type EditorEventType =
   | 'editor_executing'
   | 'editor_tool_use'
   | 'editor_tool_result'
+  | 'editor_file_changed'
   | 'editor_message'
   | 'editor_message_delta'
   | 'editor_validating'
@@ -29,13 +30,27 @@ export interface EditorEvent {
   tool_name?: string
   tool_input?: Record<string, unknown>
   tool_result?: string
+  duration_ms?: number
+  action?: 'created' | 'modified' | 'deleted'
+  path?: string
   summary?: Record<string, unknown>
+}
+
+export interface FileChangeEntry {
+  path: string
+  action: 'created' | 'modified' | 'deleted'
+  summary?: string
+  ts: number
 }
 
 export interface AgentTurn {
   id: string
+  // Id del mensaje del usuario que originó este turno. Permite renderizarlo
+  // intercalado en orden cronológico: msg user → turn → msg user → turn → ...
+  userMessageId?: string
   plan: string[] | null
   events: EditorEvent[]
+  fileChanges: FileChangeEntry[]
   clarification: { question: string; options?: string[] } | null
   completed: boolean
   failed: boolean
