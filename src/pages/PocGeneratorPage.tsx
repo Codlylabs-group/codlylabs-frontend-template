@@ -204,8 +204,18 @@ export default function PocGeneratorPage() {
           else { setProgressError([...(progress.steps || [])].reverse().find(st => st?.message)?.message || 'La generación falló.') }
           setIsGenerating(false); setGenerationStartedAt(null); return
         }
+        if (s === 'in_progress' && generationStartedAt && Date.now() - generationStartedAt > MAX_POC_GENERATION_WAIT_MS) {
+          const r = await pocGeneratorApi.getPocBySession(sessionId).catch(() => null); if (!isActive) return
+          if (r?.exists && r?.poc_id) { setExistingPoc(mapExistingPocToGenerationResponse(r)) }
+          else { setProgressError('Excedió el tiempo máximo.') }
+          setIsGenerating(false); setGenerationStartedAt(null); return
+        }
         if (s === 'idle' && generationStartedAt && Date.now() - generationStartedAt > MAX_POC_GENERATION_WAIT_MS) { setProgressError('Excedió el tiempo máximo.'); setIsGenerating(false); setGenerationStartedAt(null) }
-      } catch { if (!isActive) return; setProgressError('No se pudo obtener el progreso.') }
+      } catch {
+        if (!isActive) return
+        setProgressError('No se pudo obtener el progreso.')
+        if (generationStartedAt && Date.now() - generationStartedAt > MAX_POC_GENERATION_WAIT_MS) { setIsGenerating(false); setGenerationStartedAt(null) }
+      }
     }
     poll(); const id = window.setInterval(poll, 2000)
     return () => { isActive = false; window.clearInterval(id) }

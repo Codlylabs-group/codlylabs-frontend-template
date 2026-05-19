@@ -396,6 +396,25 @@ export default function WorkspacePocGeneratorView() {
         }
 
         if (
+          normalized === 'in_progress' &&
+          generationStartedAt &&
+          Date.now() - generationStartedAt > MAX_POC_GENERATION_WAIT_MS
+        ) {
+          const response = await pocGeneratorApi.getPocBySession(sessionId).catch(() => null)
+          if (!isActive) return
+          if (response?.exists && response.poc_id) {
+            setExistingPoc(mapExistingPocToGenerationResponse(response))
+            setFreshGenerationPocId(response.poc_id)
+            void refreshWorkspaceSignals()
+          } else {
+            setProgressError(t('ws.maxTimeExceeded'))
+          }
+          setIsGenerating(false)
+          setGenerationStartedAt(null)
+          return
+        }
+
+        if (
           normalized === 'idle' &&
           generationStartedAt &&
           Date.now() - generationStartedAt > MAX_POC_GENERATION_WAIT_MS
@@ -407,6 +426,10 @@ export default function WorkspacePocGeneratorView() {
       } catch {
         if (!isActive) return
         setProgressError(t('ws.progressError'))
+        if (generationStartedAt && Date.now() - generationStartedAt > MAX_POC_GENERATION_WAIT_MS) {
+          setIsGenerating(false)
+          setGenerationStartedAt(null)
+        }
       }
     }
     void poll()
