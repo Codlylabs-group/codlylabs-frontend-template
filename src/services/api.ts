@@ -21,6 +21,13 @@ export function registerForceLogoutCallback(cb: () => void) {
   _onForceLogout = cb
 }
 
+let _onTokenRefresh: ((tokens: { access_token: string; refresh_token: string }) => void) | null = null
+export function registerTokenRefreshCallback(
+  cb: (tokens: { access_token: string; refresh_token: string }) => void,
+) {
+  _onTokenRefresh = cb
+}
+
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -156,6 +163,12 @@ api.interceptors.response.use(
 
         window.localStorage.setItem(ACCESS_TOKEN_KEY, newAccessToken)
         window.localStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken)
+        if (_onTokenRefresh) {
+          _onTokenRefresh({
+            access_token: newAccessToken,
+            refresh_token: newRefreshToken,
+          })
+        }
 
         processQueue(null, newAccessToken)
 

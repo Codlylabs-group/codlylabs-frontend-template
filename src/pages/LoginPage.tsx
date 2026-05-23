@@ -184,28 +184,28 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center px-4">
-      <div className="w-full max-w-[720px]">
+    <div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-[520px]">
         {/* Logo */}
-        <div className="text-center mb-14">
+        <div className="text-center mb-8">
           {tenant.isWhiteLabel ? (
             <div>
               {tenant.logoUrl ? (
-                <img src={tenant.logoUrl} alt={tenant.brandName} className="h-14 mx-auto mb-3" />
+                <img src={tenant.logoUrl} alt={tenant.brandName} className="h-10 mx-auto mb-2" />
               ) : (
                 <div
-                  className="w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center text-white text-2xl font-bold"
+                  className="w-11 h-11 rounded-xl mx-auto mb-2 flex items-center justify-center text-white text-lg font-bold"
                   style={{ background: `linear-gradient(135deg, ${tenant.colors.primary}, ${tenant.colors.primaryDark})` }}
                 >
                   {tenant.brandName.substring(0, 2).toUpperCase()}
                 </div>
               )}
-              <div className="text-3xl font-bold tracking-tight" style={{ color: tenant.colors.primary }}>{tenant.brandName}</div>
+              <div className="text-2xl font-bold tracking-tight" style={{ color: tenant.colors.primary }}>{tenant.brandName}</div>
             </div>
           ) : (
             <Link
               to="/"
-              className="text-5xl font-bold text-indigo-600 tracking-tight"
+              className="text-4xl font-bold text-indigo-600 tracking-tight"
               style={{ fontFamily: 'Manrope, sans-serif' }}
             >
               CodlyLabs
@@ -214,13 +214,13 @@ export default function LoginPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.07)] border border-slate-100 px-16 py-16">
-          <h1 className="text-4xl font-bold text-slate-900 text-center">
+        <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(15,23,42,0.06)] border border-slate-100 px-7 py-8 sm:px-10 sm:py-10">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 text-center">
             {isLogin
               ? (tenant.isWhiteLabel && tenant.loginTitle ? tenant.loginTitle : 'Inicia sesion en tu cuenta')
               : 'Crea tu cuenta'}
           </h1>
-          <p className="mt-5 text-xl text-slate-500 text-center">
+          <p className="mt-3 text-base text-slate-500 text-center">
             {isLogin
               ? (tenant.isWhiteLabel && tenant.loginSubtitle ? tenant.loginSubtitle : 'Elige como quieres acceder')
               : 'Registrate para comenzar'}
@@ -234,18 +234,17 @@ export default function LoginPage() {
 
           {/* OAuth buttons */}
           {!showEmailForm && (
-            <div className="mt-14 space-y-5">
+            <div className="mt-8 space-y-3.5">
               <button
                 type="button"
                 onClick={() => handleOAuth('linkedin')}
                 disabled={isOAuthLoading !== null}
-                className="w-full flex items-center justify-center gap-4 rounded-2xl border border-slate-200 bg-white px-8 text-xl font-medium text-slate-700 transition-all hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ paddingTop: '1.35rem', paddingBottom: '1.35rem' }}
+                className="w-full flex items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3.5 text-base font-medium text-slate-700 transition-all hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isOAuthLoading === 'linkedin' ? (
-                  <Loader2 className="h-7 w-7 animate-spin text-slate-400" />
+                  <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
                 ) : (
-                  <Linkedin className="h-7 w-7 text-[#0a66c2]" />
+                  <Linkedin className="h-5 w-5 text-[#0a66c2]" />
                 )}
                 Continuar con LinkedIn
               </button>
@@ -254,13 +253,12 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => handleOAuth('google')}
                 disabled={isOAuthLoading !== null}
-                className="w-full flex items-center justify-center gap-4 rounded-2xl border border-slate-200 bg-white px-8 text-xl font-medium text-slate-700 transition-all hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ paddingTop: '1.35rem', paddingBottom: '1.35rem' }}
+                className="w-full flex items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3.5 text-base font-medium text-slate-700 transition-all hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isOAuthLoading === 'google' ? (
-                  <Loader2 className="h-7 w-7 animate-spin text-slate-400" />
+                  <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
                 ) : (
-                  <svg className="h-7 w-7" viewBox="0 0 24 24">
+                  <svg className="h-5 w-5" viewBox="0 0 24 24">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
                     <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
                     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
@@ -271,22 +269,21 @@ export default function LoginPage() {
               </button>
 
               {/* Divider */}
-              <div className="relative my-10">
+              <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-slate-200" />
                 </div>
-                <div className="relative flex justify-center text-lg">
-                  <span className="bg-white px-5 text-slate-400">o</span>
+                <div className="relative flex justify-center text-sm">
+                  <span className="bg-white px-4 text-slate-400">o</span>
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={() => setShowEmailForm(true)}
-                className="w-full flex items-center justify-center gap-4 rounded-2xl bg-indigo-600 px-8 text-xl font-semibold text-white transition-all hover:bg-indigo-500"
-                style={{ paddingTop: '1.35rem', paddingBottom: '1.35rem' }}
+                className="w-full flex items-center justify-center gap-3 rounded-xl bg-indigo-600 px-5 py-3.5 text-base font-semibold text-white transition-all hover:bg-indigo-500"
               >
-                <Mail className="h-7 w-7" />
+                <Mail className="h-5 w-5" />
                 Continuar con email
               </button>
             </div>
@@ -294,36 +291,34 @@ export default function LoginPage() {
 
           {/* Email form */}
           {showEmailForm && (
-            <form className="mt-14 space-y-7" onSubmit={isLogin ? handleLogin : handleRegister}>
+            <form className="mt-8 space-y-5" onSubmit={isLogin ? handleLogin : handleRegister}>
               {!isLogin && (
                 <div>
-                  <label className="block text-lg font-semibold text-slate-700 mb-3">Nombre</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Nombre</label>
                   <input
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Tu nombre completo"
-                    className="w-full rounded-2xl border border-slate-200 bg-white px-6 text-xl text-slate-900 outline-none placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
-                    style={{ paddingTop: '1.2rem', paddingBottom: '1.2rem' }}
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 outline-none placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
                   />
                 </div>
               )}
 
               <div>
-                <label className="block text-lg font-semibold text-slate-700 mb-3">Email</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Email</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="tu@email.com"
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-6 text-xl text-slate-900 outline-none placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
-                  style={{ paddingTop: '1.2rem', paddingBottom: '1.2rem' }}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 outline-none placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-lg font-semibold text-slate-700 mb-3">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
                   {isLogin ? 'Password' : 'Crea un password'}
                 </label>
                 <input
@@ -331,22 +326,20 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder={isLogin ? 'Tu password' : 'Min. 8 caracteres'}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-6 text-xl text-slate-900 outline-none placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
-                  style={{ paddingTop: '1.2rem', paddingBottom: '1.2rem' }}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 outline-none placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
                   required
                 />
               </div>
 
               {!isLogin && (
                 <div>
-                  <label className="block text-lg font-semibold text-slate-700 mb-3">Confirmar password</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Confirmar password</label>
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Repite tu password"
-                    className="w-full rounded-2xl border border-slate-200 bg-white px-6 text-xl text-slate-900 outline-none placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
-                    style={{ paddingTop: '1.2rem', paddingBottom: '1.2rem' }}
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 outline-none placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
                     required
                   />
                 </div>
@@ -354,7 +347,7 @@ export default function LoginPage() {
 
               {isLogin && (
                 <div className="flex justify-end">
-                  <Link to="/auth/forgot-password" className="text-lg text-indigo-600 hover:text-indigo-700 transition-colors">
+                  <Link to="/auth/forgot-password" className="text-sm text-indigo-600 hover:text-indigo-700 transition-colors">
                     Recuperar acceso
                   </Link>
                 </div>
@@ -363,10 +356,9 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full flex items-center justify-center gap-3 rounded-2xl bg-indigo-600 px-8 text-xl font-semibold text-white transition-all hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ paddingTop: '1.35rem', paddingBottom: '1.35rem' }}
+                className="w-full flex items-center justify-center gap-3 rounded-xl bg-indigo-600 px-5 py-3.5 text-base font-semibold text-white transition-all hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting && <Loader2 className="h-6 w-6 animate-spin" />}
+                {isSubmitting && <Loader2 className="h-5 w-5 animate-spin" />}
                 {isLogin ? 'Ingresar' : 'Crear cuenta'}
               </button>
 
@@ -376,7 +368,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => { setShowEmailForm(false); setError('') }}
-                  className="w-full text-lg text-slate-500 hover:text-slate-700 transition-colors py-2"
+                  className="w-full text-sm text-slate-500 hover:text-slate-700 transition-colors py-1"
                 >
                   Volver a las opciones de acceso
                 </button>
@@ -388,7 +380,7 @@ export default function LoginPage() {
         {/* Toggle login/register — hidden on tenant builds: accounts there
             are created exclusively via workspace/members invites. */}
         {!IS_TENANT_BUILD && (
-          <p className="mt-8 text-center text-lg text-slate-500">
+          <p className="mt-6 text-center text-sm text-slate-500">
             {isLogin ? (
               <>
                 No tienes cuenta?{' '}

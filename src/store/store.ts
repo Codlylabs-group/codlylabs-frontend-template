@@ -4,6 +4,8 @@ import storage from 'redux-persist/lib/storage'
 import userReducer from './userSlice'
 import cacheReducer from './cacheSlice'
 import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '../services/authStorage'
+import { registerForceLogoutCallback, registerTokenRefreshCallback } from '../services/api'
+import { clearAuth, setTokens } from './userSlice'
 
 const persistConfig = {
   key: 'root',
@@ -31,6 +33,14 @@ const tokenSyncMiddleware: Middleware = (storeAPI) => (next) => (action: any) =>
         window.localStorage.setItem(REFRESH_TOKEN_KEY, state.user.tokens.refresh_token)
       }
     } else {
+      if (action.type === 'persist/REHYDRATE' && typeof window !== 'undefined') {
+        const accessToken = window.localStorage.getItem(ACCESS_TOKEN_KEY)
+        const refreshToken = window.localStorage.getItem(REFRESH_TOKEN_KEY)
+        if (accessToken && refreshToken) {
+          storeAPI.dispatch(setTokens({ access_token: accessToken, refresh_token: refreshToken }))
+          return result
+        }
+      }
       // Clear tokens from localStorage if they don't exist in Redux
       if (typeof window !== 'undefined') {
         window.localStorage.removeItem(ACCESS_TOKEN_KEY)
@@ -41,9 +51,6 @@ const tokenSyncMiddleware: Middleware = (storeAPI) => (next) => (action: any) =>
 
   return result
 }
-
-import { registerForceLogoutCallback } from '../services/api'
-import { clearAuth } from './userSlice'
 
 export const store = configureStore({
   reducer: persistedReducer,
@@ -59,6 +66,7 @@ export const persistor = persistStore(store)
 
 // Wire up force-logout so the API interceptor can clear Redux auth state
 registerForceLogoutCallback(() => store.dispatch(clearAuth()))
+registerTokenRefreshCallback((tokens) => store.dispatch(setTokens(tokens)))
 
 export type RootState = ReturnType<typeof store.getState>
 export type AppDispatch = typeof store.dispatch
