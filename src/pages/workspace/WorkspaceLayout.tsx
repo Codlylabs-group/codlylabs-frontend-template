@@ -621,6 +621,14 @@ function TopBar({
   const userMenuRef = useClickOutside<HTMLDivElement>(userMenuOpen, () => setUserMenuOpen(false))
   const langRef = useClickOutside<HTMLDivElement>(langOpen, () => setLangOpen(false))
 
+  // Hide the global "Generar PoC" header CTA on the discovery summary view
+  // (which already has its own primary CTA in the brief card) and while the
+  // PoC is being generated, so the user isn't tempted to restart the flow.
+  const location = useLocation()
+  const hideGenerateCta =
+    location.pathname.startsWith('/workspace/summary') ||
+    location.pathname.startsWith('/workspace/poc-generator')
+
   return (
     <header
       data-print-hide="chrome"
@@ -641,15 +649,19 @@ function TopBar({
         {subtitle && <p className="text-xs text-gray-400">{subtitle}</p>}
       </div>
       <div className="flex items-center gap-2">
-        <button
-          onClick={() => onCreatePoc('poc')}
-          className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-white shadow-sm transition-all hover:shadow-md"
-          style={{ background: `linear-gradient(135deg, ${brand.primary}, ${brand.primaryDark})` }}
-        >
-          <Plus size={14} />
-          Generar PoC
-        </button>
-        <div className="h-8 w-px bg-gray-200" />
+        {!hideGenerateCta && (
+          <>
+            <button
+              onClick={() => onCreatePoc('poc')}
+              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-white shadow-sm transition-all hover:shadow-md"
+              style={{ background: `linear-gradient(135deg, ${brand.primary}, ${brand.primaryDark})` }}
+            >
+              <Plus size={14} />
+              Generar PoC
+            </button>
+            <div className="h-8 w-px bg-gray-200" />
+          </>
+        )}
 
         {/* Language selector */}
         <div ref={langRef} className="relative">
