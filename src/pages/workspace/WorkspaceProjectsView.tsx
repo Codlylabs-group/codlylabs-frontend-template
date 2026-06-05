@@ -4,17 +4,20 @@ import type { LucideIcon } from 'lucide-react'
 import {
   AlertTriangle,
   ArrowUpRight,
+  Check,
   CheckCircle2,
   Clock,
   Code2,
   FolderKanban,
   Layers,
+  ListChecks,
   Loader2,
   Plus,
   Rocket,
   Search,
   Sparkles,
   Trash2,
+  X,
   XCircle,
 } from 'lucide-react'
 
@@ -90,11 +93,17 @@ function ProjectCard({
   accent,
   onDelete,
   deleting,
+  selectionMode,
+  selected,
+  onToggleSelect,
 }: {
   project: Project
   accent: string
   onDelete: () => void
   deleting: boolean
+  selectionMode: boolean
+  selected: boolean
+  onToggleSelect: () => void
 }) {
   const { t } = useI18n()
   const title = project.name || t('ws.untitledProject')
@@ -104,7 +113,13 @@ function ProjectCard({
   const initials = initialsFromName(title)
 
   return (
-    <div className="group flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition-shadow hover:shadow-md">
+    <div
+      role={selectionMode ? 'button' : undefined}
+      onClick={selectionMode ? onToggleSelect : undefined}
+      className={`group flex h-full flex-col overflow-hidden rounded-xl border bg-white transition-shadow hover:shadow-md ${
+        selectionMode ? 'cursor-pointer' : ''
+      } ${selected ? 'border-blue-400 ring-2 ring-blue-200' : 'border-gray-200'}`}
+    >
       <div
         className="relative h-28 w-full overflow-hidden"
         style={{
@@ -113,6 +128,17 @@ function ProjectCard({
             : `linear-gradient(135deg, ${accent}, ${accent}CC)`,
         }}
       >
+        {selectionMode && (
+          <span
+            className={`absolute left-3 top-3 z-10 flex h-6 w-6 items-center justify-center rounded-md border-2 shadow-sm transition-colors ${
+              selected
+                ? 'border-blue-500 bg-blue-500 text-white'
+                : 'border-white bg-white/70 text-transparent'
+            }`}
+          >
+            <Check size={14} strokeWidth={3} />
+          </span>
+        )}
         {project.thumbnail_url ? (
           <img src={`${API_BASE_URL}${project.thumbnail_url}`} alt={title} className="h-full w-full object-cover" />
         ) : (
@@ -164,7 +190,17 @@ function ProjectCard({
           {previewHref ? (
             <Link
               to={previewHref}
-              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:border-blue-200 hover:text-blue-600"
+              onClick={(event) => {
+                if (selectionMode) {
+                  event.preventDefault()
+                  event.stopPropagation()
+                  onToggleSelect()
+                }
+              }}
+              aria-disabled={selectionMode}
+              className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:border-blue-200 hover:text-blue-600 ${
+                selectionMode ? 'pointer-events-none opacity-60' : ''
+              }`}
             >
               {t('ws.openPreview')}
               <ArrowUpRight size={12} />
@@ -181,8 +217,11 @@ function ProjectCard({
           )}
           <button
             type="button"
-            onClick={onDelete}
-            disabled={deleting}
+            onClick={(event) => {
+              event.stopPropagation()
+              onDelete()
+            }}
+            disabled={deleting || selectionMode}
             title={t('ws.deleteProject')}
             className="inline-flex items-center justify-center rounded-lg border border-gray-200 p-1.5 text-gray-400 transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-50"
           >
@@ -228,6 +267,10 @@ export default function WorkspaceProjectsView() {
   const [query, setQuery] = useState('')
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [selectionMode, setSelectionMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false)
+  const [bulkDeleting, setBulkDeleting] = useState(false)
 
   useEffect(() => {
     setHeader(t('ws.projects'), t('ws.allProjects'))
@@ -248,8 +291,41 @@ export default function WorkspaceProjectsView() {
     })
   }, [projects, query])
 
+  const allFilteredSelected = filtered.length > 0 && filtered.every((project) => selectedIds.has(project.id))
+
   const handleCreate = () => {
     navigate('/workspace/poc-generator')
+  }
+
+  const exitSelectionMode = () => {
+    setSelectionMode(false)
+    setSelectedIds(new Set())
+    setConfirmBulkDelete(false)
+  }
+
+  const toggleSelect = (projectId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(projectId)) {
+        next.delete(projectId)
+      } else {
+        next.add(projectId)
+      }
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    setSelectedIds((prev) => {
+      if (filtered.every((project) => prev.has(project.id))) {
+        const next = new Set(prev)
+        filtered.forEach((project) => next.delete(project.id))
+        return next
+      }
+      const next = new Set(prev)
+      filtered.forEach((project) => next.add(project.id))
+      return next
+    })
   }
 
   const handleDeleteConfirm = async () => {
@@ -263,6 +339,22 @@ export default function WorkspaceProjectsView() {
       // silently fail — the project list will refresh anyway
     } finally {
       setDeletingId(null)
+    }
+  }
+
+  const handleBulkDeleteConfirm = async () => {
+    const ids = Array.from(selectedIds)
+    if (ids.length === 0) return
+    try {
+      setBulkDeleting(true)
+      setConfirmBulkDelete(false)
+      await projectsApi.batchDeleteProjects(ids)
+      await refreshContext()
+      exitSelectionMode()
+    } catch {
+      // silently fail — the project list will refresh anyway
+    } finally {
+      setBulkDeleting(false)
     }
   }
 
@@ -314,10 +406,60 @@ export default function WorkspaceProjectsView() {
                 className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm text-gray-700 placeholder:text-gray-400 outline-none transition-colors focus:border-blue-300"
               />
             </div>
-            <div className="text-xs text-gray-400">
-              {t('ws.showingOf').replace('{shown}', String(filtered.length)).replace('{total}', String(totalProjects))}
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-gray-400">
+                {t('ws.showingOf').replace('{shown}', String(filtered.length)).replace('{total}', String(totalProjects))}
+              </span>
+              {!selectionMode && (
+                <button
+                  type="button"
+                  onClick={() => setSelectionMode(true)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:border-blue-200 hover:text-blue-600"
+                >
+                  <ListChecks size={14} />
+                  {t('ws.select')}
+                </button>
+              )}
             </div>
           </div>
+
+          {selectionMode && (
+            <div className="mb-4 flex flex-col gap-3 rounded-xl border border-blue-200 bg-blue-50/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={toggleSelectAll}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-xs font-medium text-blue-700 transition-colors hover:bg-blue-100"
+                >
+                  <ListChecks size={14} />
+                  {allFilteredSelected ? t('ws.deselectAll') : t('ws.selectAll')}
+                </button>
+                <span className="text-xs font-medium text-blue-700">
+                  {t('ws.selectedCount').replace('{n}', String(selectedIds.size))}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={exitSelectionMode}
+                  disabled={bulkDeleting}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-50"
+                >
+                  <X size={14} />
+                  {t('ws.cancel')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmBulkDelete(true)}
+                  disabled={selectedIds.size === 0 || bulkDeleting}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {bulkDeleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                  {t('ws.deleteSelected').replace('{n}', String(selectedIds.size))}
+                </button>
+              </div>
+            </div>
+          )}
 
           {filtered.length === 0 ? (
             <div className="rounded-xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
@@ -333,6 +475,9 @@ export default function WorkspaceProjectsView() {
                   accent={brand.primary}
                   onDelete={() => setConfirmDeleteId(project.id)}
                   deleting={deletingId === project.id}
+                  selectionMode={selectionMode}
+                  selected={selectedIds.has(project.id)}
+                  onToggleSelect={() => toggleSelect(project.id)}
                 />
               ))}
             </div>
@@ -374,6 +519,46 @@ export default function WorkspaceProjectsView() {
                 className="flex-1 rounded-xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-rose-500"
               >
                 {t('ws.delete')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk delete confirmation modal */}
+      {confirmBulkDelete && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center px-4"
+          onClick={() => setConfirmBulkDelete(false)}
+        >
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+          <div
+            className="relative w-full max-w-md rounded-2xl bg-white p-8 shadow-[0_24px_80px_rgba(0,0,0,0.15)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-rose-50">
+              <AlertTriangle className="h-7 w-7 text-rose-500" />
+            </div>
+            <h3 className="mt-5 text-center text-xl font-bold text-slate-900">
+              {t('ws.deleteSelectedTitle')}
+            </h3>
+            <p className="mt-3 text-center text-sm text-slate-500 leading-relaxed">
+              {t('ws.deleteSelectedMessage').replace('{n}', String(selectedIds.size))}
+            </p>
+            <div className="mt-8 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmBulkDelete(false)}
+                className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+              >
+                {t('ws.cancel')}
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkDeleteConfirm}
+                className="flex-1 rounded-xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-rose-500"
+              >
+                {t('ws.deleteSelected').replace('{n}', String(selectedIds.size))}
               </button>
             </div>
           </div>

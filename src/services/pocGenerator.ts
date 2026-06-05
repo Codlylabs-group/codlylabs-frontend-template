@@ -111,6 +111,10 @@ export interface ExistingPocResponse {
   exists: boolean
   poc_id?: string
   status?: string
+  // Cuando la generación falló sin persistir una PoC, el backend devuelve
+  // exists:false + status:'failed' + error, para que el polling corte y
+  // muestre el error en vez de quedar en spinner infinito.
+  error?: string | null
   download_url?: string | null
   file_path?: string | null
   poc_type?: string

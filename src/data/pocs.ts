@@ -681,8 +681,8 @@ export const verticals: Vertical[] = [
         {
           id: 'product-release-notes',
           name: 'Product Release Notes',
-          description: 'Generación automática de release notes a partir de tickets de Jira o commits de Git, produciendo dos versiones: una técnica para devs y otra legible para clientes. Agrupa cambios por categoría (Features, Fixes) y redacta en lenguaje natural.',
-          prompt: 'Desarrolla una POC de "Auto-Changelog". Frontend: Input: Lista de IDs de tickets de Jira o Commits de Git. Output: Documento "Release Notes v2.1" formateado para cliente final, y otro técnico para devs. Backend: Resumen de texto (Summarization) que agrupa cambios por categoría (Features, Fixes) y redacta en lenguaje natural. Objetivo: Automatizar documentación de releases.',
+          description: 'Generación automática de release notes a partir de tickets de tareas internas o commits de Git, produciendo dos versiones: una técnica para devs y otra legible para clientes. Agrupa cambios por categoría (Features, Fixes) y redacta en lenguaje natural.',
+          prompt: 'Desarrolla una POC de "Auto-Changelog". Frontend: Input: Lista de IDs de tickets de tareas internas o Commits de Git. Output: Documento "Release Notes v2.1" formateado para cliente final, y otro técnico para devs. Backend: Resumen de texto (Summarization) que agrupa cambios por categoría (Features, Fixes) y redacta en lenguaje natural. Objetivo: Automatizar documentación de releases.',
           interface: 'DataUpload'
         },
         {
@@ -745,7 +745,7 @@ export const verticals: Vertical[] = [
          id: 'ticket-triage',
          name: 'IT Ticket Triage & Routing',
          description: 'Clasificación automática de tickets de soporte IT que asigna categoría (Hardware/Software/Red), prioridad (P1-P4) y grupo resolutor correcto al instante. Elimina la mesa de entrada manual enrutando cada ticket al equipo adecuado desde el primer momento.',
-         prompt: 'Desarrolla una POC de "IT Service Desk Auto-Triager". Frontend: Cola de tickets entrantes. Asignación automática de Categoría (Hardware/Software/Red) y Prioridad (P1-P4). Enrutamiento al grupo resolutor correcto. Backend: Clasificación de texto supervisada entrenada con histórico de tickets de Jira/ServiceNow. Objetivo: Eliminar la mesa de entrada manual.',
+         prompt: 'Desarrolla una POC de "IT Service Desk Auto-Triager". Frontend: Cola de tickets entrantes. Asignación automática de Categoría (Hardware/Software/Red) y Prioridad (P1-P4). Enrutamiento al grupo resolutor correcto. Backend: Clasificación de texto supervisada entrenada con histórico de tickets de tareas internas/ServiceNow. Objetivo: Eliminar la mesa de entrada manual.',
          interface: 'DocumentUpload'
        }
       ]

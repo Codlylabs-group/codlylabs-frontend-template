@@ -118,6 +118,11 @@ export default function PocGeneratorPage() {
       try {
         const response = await pocGeneratorApi.getPocBySession(sessionId)
         if (response.exists && response.poc_id) { setExistingPoc(mapExistingPocToGenerationResponse(response)); setIsGenerating(false); logger.info('Found existing POC', { poc_id: response.poc_id }); return }
+        // Generación que falló sin persistir PoC: estado terminal -> mostrar error
+        // en vez de quedar esperando indefinidamente al recargar/volver.
+        if (!response.exists && String(response.status || '').toLowerCase() === 'failed') {
+          setProgressError(response.error || 'La generación falló.'); setGenerationProgressStatus('failed'); setIsGenerating(false); setGenerationStartedAt(null); setIsCheckingExisting(false); return
+        }
       } catch { logger.debug('No existing POC', { sessionId }) }
       try {
         const progress = await pocGeneratorApi.getProgress(sessionId)

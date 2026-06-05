@@ -90,6 +90,22 @@ export interface DeleteProjectResponse {
   cleanup_warnings: string[]
 }
 
+export interface BatchDeleteProjectsResponse {
+  status: 'deleted'
+  requested: number
+  deleted_projects: number
+  deleted_project_ids: string[]
+  not_found_ids: string[]
+  forbidden_ids: string[]
+  deleted_poc_ids: string[]
+  deleted_db_pocs: number
+  destroyed_previews: string[]
+  removed_session_keys: string[]
+  removed_discovery_keys: string[]
+  removed_artifacts: number
+  cleanup_warnings: string[]
+}
+
 export const projectsApi = {
   async ensureFromPoc(pocId: string, projectName?: string): Promise<EnsureProjectResponse> {
     const response = await api.post(`/api/v1/projects/from-poc/${pocId}/ensure`, {
@@ -164,6 +180,13 @@ export const projectsApi = {
 
   async deleteProject(projectId: string): Promise<DeleteProjectResponse> {
     const response = await api.delete(`/api/v1/projects/${projectId}`)
+    return response.data
+  },
+
+  async batchDeleteProjects(projectIds: string[]): Promise<BatchDeleteProjectsResponse> {
+    const response = await api.post('/api/v1/projects/batch-delete', {
+      project_ids: projectIds,
+    })
     return response.data
   },
 

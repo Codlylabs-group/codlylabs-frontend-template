@@ -231,6 +231,16 @@ export default function WorkspacePocGeneratorView() {
           setIsGenerating(false)
           return
         }
+        // Generación que falló sin persistir PoC: estado terminal -> mostrar error,
+        // no dejar la pantalla esperando indefinidamente al recargar/volver.
+        if (!cancelled && !response.exists && String(response.status || '').toLowerCase() === 'failed') {
+          setProgressError(response.error || t('ws.generationFailed'))
+          setGenerationProgressStatus('failed')
+          setIsGenerating(false)
+          setGenerationStartedAt(null)
+          setIsCheckingExisting(false)
+          return
+        }
       } catch {
         // no-op
       }
