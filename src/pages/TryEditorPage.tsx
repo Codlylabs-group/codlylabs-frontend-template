@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { plgService } from '../services/plg'
 import { authApi, saveAuthReturnUrl } from '../services/auth'
+import { ACCESS_LOCKED } from '../constants/accessLock'
 import { normalizePreviewUrl } from '../utils/previewUrl'
 import { useI18n } from '../i18n'
 
@@ -212,10 +213,12 @@ export default function TryEditorPage() {
           <div className="flex items-center gap-1.5 px-3 py-1 bg-gray-50 rounded-lg border border-gray-200/20">
             <span className="text-sm font-medium text-gray-500">{interactionCount}/{maxInteractions} {t('tryEditor.editsUsed')}</span>
           </div>
-          <button type="button" onClick={() => { saveAuthReturnUrl(); navigate('/login') }}
-            className="text-base font-medium text-gray-500 hover:text-indigo-600 transition-colors">
-            {t('try.login')}
-          </button>
+          {!ACCESS_LOCKED && (
+            <button type="button" onClick={() => { saveAuthReturnUrl(); navigate('/login') }}
+              className="text-base font-medium text-gray-500 hover:text-indigo-600 transition-colors">
+              {t('try.login')}
+            </button>
+          )}
         </div>
       </header>
 
@@ -300,16 +303,20 @@ export default function TryEditorPage() {
                 <Lock className="w-4 h-4 text-amber-600" />
                 <p className="text-base font-bold text-gray-900">{t('tryEditor.limitReached')}</p>
               </div>
-              <p className="text-sm text-gray-500 mb-3 leading-6">{t('tryEditor.registerToUnlock')}</p>
-              <button type="button" disabled={isLoadingLinkedIn} onClick={handleLinkedIn}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-[#0A66C2] text-white text-base font-bold hover:bg-[#0958a7] transition-all disabled:opacity-60 mb-2 shadow-lg shadow-blue-900/10">
-                <Linkedin className="w-4 h-4" />
-                {isLoadingLinkedIn ? t('cta.linkedInLoading') : t('cta.linkedIn')}
-              </button>
-              <button type="button" onClick={() => { saveAuthReturnUrl(); navigate('/login') }}
-                className="w-full flex items-center justify-center px-4 py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:border-gray-300 transition-colors">
-                {t('cta.emailRegister')}
-              </button>
+              {!ACCESS_LOCKED && (
+                <>
+                  <p className="text-sm text-gray-500 mb-3 leading-6">{t('tryEditor.registerToUnlock')}</p>
+                  <button type="button" disabled={isLoadingLinkedIn} onClick={handleLinkedIn}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-[#0A66C2] text-white text-base font-bold hover:bg-[#0958a7] transition-all disabled:opacity-60 mb-2 shadow-lg shadow-blue-900/10">
+                    <Linkedin className="w-4 h-4" />
+                    {isLoadingLinkedIn ? t('cta.linkedInLoading') : t('cta.linkedIn')}
+                  </button>
+                  <button type="button" onClick={() => { saveAuthReturnUrl(); navigate('/login') }}
+                    className="w-full flex items-center justify-center px-4 py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:border-gray-300 transition-colors">
+                    {t('cta.emailRegister')}
+                  </button>
+                </>
+              )}
             </div>
           ) : (
             <div className="p-4 border-t border-gray-100 bg-gray-50">

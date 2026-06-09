@@ -9,6 +9,7 @@ import { useAppSelector } from '../store/hooks'
 import { billingApi, type BillingStatus } from '../services/billing'
 import { VerticalSelectorModal, type SelectableVertical } from '../components/VerticalSelectorModal'
 import { readSelectedVertical } from '../utils/verticalStorage'
+import { ACCESS_LOCKED } from '../constants/accessLock'
 
 const PROMPT_SOFT_LIMIT = 3500
 const PROMPT_HARD_LIMIT = 4000
@@ -411,7 +412,7 @@ export default function TryPage() {
                 {userData.full_name || userData.email}
               </span>
             </div>
-          ) : (
+          ) : ACCESS_LOCKED ? null : (
             <button
               type="button"
               onClick={() => { saveAuthReturnUrl(); navigate('/login') }}
@@ -501,7 +502,7 @@ export default function TryPage() {
                         {isGenerating ? t('try.generating') : t('try.generateBtn')}
                       </button>
                     </div>
-                    {billingStatus?.usage && billingStatus.usage.pocs_limit !== 'unlimited' && billingStatus.usage.pocs_limit !== -1 && billingStatus.usage.pocs_generated >= Number(billingStatus.usage.pocs_limit) && (
+                    {!ACCESS_LOCKED && billingStatus?.usage && billingStatus.usage.pocs_limit !== 'unlimited' && billingStatus.usage.pocs_limit !== -1 && billingStatus.usage.pocs_generated >= Number(billingStatus.usage.pocs_limit) && (
                       <div className="mt-2 flex justify-end">
                         <button type="button" onClick={() => navigate('/pricing')} className="text-xs font-bold text-indigo-600 hover:text-indigo-800 underline">
                           Mejorar plan para generar más PoCs
@@ -646,7 +647,8 @@ export default function TryPage() {
                 </div>
               )}
 
-              {/* CTA Banner */}
+              {/* CTA Banner — oculto mientras el registro está pausado */}
+              {!ACCESS_LOCKED && (
               <div className="bg-indigo-600 rounded-2xl p-12 text-center text-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/20 rounded-full blur-2xl -ml-24 -mb-24" />
@@ -666,6 +668,7 @@ export default function TryPage() {
                   </button>
                 </div>
               </div>
+              )}
             </div>
           )}
         </div>

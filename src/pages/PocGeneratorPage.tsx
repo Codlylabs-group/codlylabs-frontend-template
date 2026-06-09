@@ -25,6 +25,7 @@ import { SimulatedThoughts } from '../components/SimulatedThoughts'
 import { VerticalSelectorModal, type SelectableVertical } from '../components/VerticalSelectorModal'
 import { readSelectedVertical } from '../utils/verticalStorage'
 import { useAppSelector } from '../store/hooks'
+import { ACCESS_LOCKED } from '../constants/accessLock'
 import { logger } from '../utils/logger'
 
 const MAX_POC_GENERATION_WAIT_MS = 15 * 60 * 1000
@@ -352,7 +353,7 @@ export default function PocGeneratorPage() {
                   {isGenerating ? t('pocGenerator.generating') : 'Generar PoC'}
                 </button>
 
-                {billingStatus?.usage && billingStatus.usage.pocs_limit !== 'unlimited' && billingStatus.usage.pocs_limit !== -1 && billingStatus.usage.pocs_generated >= Number(billingStatus.usage.pocs_limit) && (
+                {!ACCESS_LOCKED && billingStatus?.usage && billingStatus.usage.pocs_limit !== 'unlimited' && billingStatus.usage.pocs_limit !== -1 && billingStatus.usage.pocs_generated >= Number(billingStatus.usage.pocs_limit) && (
                   <button type="button" onClick={() => navigate('/pricing')} className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:shadow-lg transition-all">
                     Mejorar plan para generar más PoCs
                   </button>

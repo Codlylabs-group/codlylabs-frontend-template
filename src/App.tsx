@@ -8,6 +8,7 @@ import GlobalWorkspaceShortcut from './components/GlobalWorkspaceShortcut'
 import AdminRouteGuard from './components/AdminRouteGuard'
 import { isTenantSubdomainHost } from './utils/platformBranding'
 import { TENANT_STATIC_BRANDING } from './constants/tenantBranding'
+import { ACCESS_LOCKED } from './constants/accessLock'
 
 // ─── Route-level code splitting ─────────────────────────────────
 // Each page is loaded on demand, reducing initial bundle size.
@@ -144,6 +145,16 @@ function TenantBoundary({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+// Temporary public-onboarding lock — hides/blocks workspace, login, register,
+// pricing and billing while signups/subscriptions are paused. Does NOT apply to
+// tenant subdomains (white-label), where their own users must still log in.
+function LockedRoute({ children }: { children: React.ReactNode }) {
+  if (ACCESS_LOCKED && !isTenantSubdomainHost()) {
+    return <Navigate to="/" replace />
+  }
+  return <>{children}</>
+}
+
 // White Label is a CodlyLabs-only feature — tenants cannot white-label inside
 // their own white-label. Blocks both runtime subdomain visitors and dedicated
 // tenant builds (where TENANT_STATIC_BRANDING is baked in).
@@ -206,20 +217,20 @@ function App() {
                 <Route path="/preview/:pocId" element={<InteractivePreviewPage />} />
                 <Route path="/shared/:shareSlug" element={<SharedPreviewPage />} />
 
-                {/* Auth */}
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<LoginPage />} />
-                <Route path="/invite/:token" element={<InviteAcceptPage />} />
-                <Route path="/auth/callback" element={<LinkedInCallbackPage />} />
-                <Route path="/auth/google/callback" element={<LinkedInCallbackPage />} />
-                <Route path="/auth/linkedin/callback" element={<LinkedInCallbackPage />} />
-                <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
-                <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
+                {/* Auth — locked while public signup is paused */}
+                <Route path="/login" element={<LockedRoute><LoginPage /></LockedRoute>} />
+                <Route path="/register" element={<LockedRoute><LoginPage /></LockedRoute>} />
+                <Route path="/invite/:token" element={<LockedRoute><InviteAcceptPage /></LockedRoute>} />
+                <Route path="/auth/callback" element={<LockedRoute><LinkedInCallbackPage /></LockedRoute>} />
+                <Route path="/auth/google/callback" element={<LockedRoute><LinkedInCallbackPage /></LockedRoute>} />
+                <Route path="/auth/linkedin/callback" element={<LockedRoute><LinkedInCallbackPage /></LockedRoute>} />
+                <Route path="/auth/forgot-password" element={<LockedRoute><ForgotPasswordPage /></LockedRoute>} />
+                <Route path="/auth/reset-password" element={<LockedRoute><ResetPasswordPage /></LockedRoute>} />
+                <Route path="/profile" element={<LockedRoute><ProfilePage /></LockedRoute>} />
                 {/* White Label (ex-Branding Studio) — full-screen, outside
                     WorkspaceLayout. Blocked on tenant hosts / dedicated builds. */}
-                <Route path="/workspace/branding" element={<WhiteLabelOnlyRoute><WorkspaceBrandingStudioView /></WhiteLabelOnlyRoute>} />
-                <Route path="/workspace" element={<WorkspaceLayout />}>
+                <Route path="/workspace/branding" element={<LockedRoute><WhiteLabelOnlyRoute><WorkspaceBrandingStudioView /></WhiteLabelOnlyRoute></LockedRoute>} />
+                <Route path="/workspace" element={<LockedRoute><WorkspaceLayout /></LockedRoute>}>
                   <Route index element={<WorkspaceDashboardView />} />
                   <Route path="projects" element={<WorkspaceProjectsView />} />
                   <Route path="verticals" element={<WorkspaceVerticalsView />} />
@@ -233,9 +244,9 @@ function App() {
                   <Route path="settings" element={<WorkspaceSettingsView />} />
                   <Route path="profile" element={<WorkspaceProfileView />} />
                 </Route>
-                {/* Pricing is always public; billing dashboard gated */}
-                <Route path="/pricing" element={<PricingPage />} />
-                <Route path="/billing" element={<FeatureGate feature="billing"><BillingPage /></FeatureGate>} />
+                {/* Pricing & billing — locked while subscriptions are paused */}
+                <Route path="/pricing" element={<LockedRoute><PricingPage /></LockedRoute>} />
+                <Route path="/billing" element={<LockedRoute><FeatureGate feature="billing"><BillingPage /></FeatureGate></LockedRoute>} />
 
                 {/* Admin — R-01: core admin gated, sales tools gated separately.
                     Login is not wrapped in AdminRouteGuard (it's the entry point).

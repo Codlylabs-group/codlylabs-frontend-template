@@ -4,12 +4,18 @@ import { LayoutGrid, LogOut } from 'lucide-react'
 import { useI18n } from '../i18n'
 import { useAppSelector } from '../store/hooks'
 import { useLogout } from '../hooks/useLogout'
+import { ACCESS_LOCKED } from '../constants/accessLock'
 
 export default function GlobalWorkspaceShortcut() {
   const location = useLocation()
   const { t } = useI18n()
   const isAuthenticated = useAppSelector((state) => state.user.tokens !== null)
   const logout = useLogout()
+
+  // Acceso al workspace pausado: no mostrar el atajo flotante.
+  if (ACCESS_LOCKED) {
+    return null
+  }
 
   const orgPlan = typeof window !== 'undefined' ? localStorage.getItem('org_plan') || '' : ''
   const isFree = orgPlan === 'free'

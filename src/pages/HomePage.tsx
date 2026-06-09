@@ -14,6 +14,7 @@ import AuthModal from '../components/AuthModal'
 import { useI18n } from '../i18n'
 import { Globe, ChevronDown, LayoutGrid } from 'lucide-react'
 import { useAppSelector } from '../store/hooks'
+import { ACCESS_LOCKED } from '../constants/accessLock'
 
 export default function HomePage() {
   const { language, setLanguage, t } = useI18n()
@@ -81,9 +82,11 @@ export default function HomePage() {
             <a href="#verticals" className="text-slate-600 hover:text-indigo-600 transition-colors font-semibold text-sm">
               {t('nav.verticals')}
             </a>
-            <Link to="/pricing" className="text-slate-600 hover:text-indigo-600 transition-colors font-semibold text-sm">
-              {t('nav.pricing')}
-            </Link>
+            {!ACCESS_LOCKED && (
+              <Link to="/pricing" className="text-slate-600 hover:text-indigo-600 transition-colors font-semibold text-sm">
+                {t('nav.pricing')}
+              </Link>
+            )}
             <a href="#compliance" className="text-slate-600 hover:text-indigo-600 transition-colors font-semibold text-sm">
               {t('nav.security')}
             </a>
@@ -91,7 +94,7 @@ export default function HomePage() {
 
           <div className="ml-auto flex shrink-0 items-center gap-4">
             {/* Workspace button (authenticated users, all plans) */}
-            {isAuthenticated && (
+            {isAuthenticated && !ACCESS_LOCKED && (
               <Link
                 to="/workspace"
                 className="hidden md:inline-flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 transition-all hover:bg-indigo-100"
@@ -134,7 +137,7 @@ export default function HomePage() {
                 </div>
               )}
             </div>
-            {!isAuthenticated && (
+            {!isAuthenticated && !ACCESS_LOCKED && (
               <div className="flex items-center gap-3">
                 <button
                   type="button"

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { X, Linkedin, Sparkles, Code, Share2, Rocket } from 'lucide-react'
 import { authApi, saveAuthReturnUrl } from '../services/auth'
 import { useI18n } from '../i18n'
+import { ACCESS_LOCKED } from '../constants/accessLock'
 
 export type CTATrigger = 'generation_complete' | 'second_attempt' | 'edit_attempt'
 
@@ -49,7 +50,8 @@ export default function RegistrationCTAModal({ open, onClose, trigger = 'generat
     }
   }, [navigate])
 
-  if (!open) return null
+  // Registro pausado: nunca mostrar el CTA de registro/login.
+  if (!open || ACCESS_LOCKED) return null
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">

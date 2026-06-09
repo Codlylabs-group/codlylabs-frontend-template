@@ -18,6 +18,7 @@ import {
 import { useI18n } from '../i18n'
 import { getVerticalPackStaticData } from '../data/verticalPack'
 import { ACCESS_TOKEN_KEY } from '../services/authStorage'
+import { ACCESS_LOCKED } from '../constants/accessLock'
 import {
   verticalPacksApi,
   VerticalPackDetail,
@@ -416,8 +417,8 @@ export default function VerticalPackDetailPage({ embedded = false }: VerticalPac
           </div>
         )}
 
-        {/* Login banner */}
-        {!isLoggedIn && (
+        {/* Login banner — oculto mientras el login/registro está pausado */}
+        {!isLoggedIn && !ACCESS_LOCKED && (
           <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4">
             <LogIn className="w-5 h-5 text-amber-600 flex-shrink-0" />
             <p className="text-sm text-amber-800 flex-1">
