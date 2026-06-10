@@ -7,6 +7,25 @@
 
 import { api } from './api';
 
+export interface ValidationRequestPayload {
+  company_name: string;
+  industry?: string;
+  full_name: string;
+  role?: string;
+  email: string;
+  problem: string;
+  current_process?: string;
+  goals: string;
+  data?: string;
+  language?: 'en' | 'es';
+}
+
+export interface ValidationRequestResponse {
+  request_id: string;
+  status: string;
+  message: string;
+}
+
 export interface FreeDiagnosticRequest {
   industry: string;
   company_size: string;
@@ -369,6 +388,18 @@ class PLGService {
       event,
       anon_session_id: anonSessionId,
     }).catch(() => {/* silent */});
+  }
+
+  /**
+   * Submit a public "AI Validation Studio" request (landing form, no auth).
+   * Kicks off background PoC generation; the user receives the access link by email.
+   */
+  async submitValidationRequest(payload: ValidationRequestPayload): Promise<ValidationRequestResponse> {
+    const response = await api.post<ValidationRequestResponse>(
+      '/api/v1/plg/validation-request',
+      payload,
+    );
+    return response.data;
   }
 }
 
