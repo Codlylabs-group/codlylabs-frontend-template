@@ -14,6 +14,7 @@ import {
   Loader2,
   ShieldCheck,
   Clock,
+  ShoppingCart,
 } from 'lucide-react'
 import { useI18n } from '../../i18n'
 import { plgService } from '../../services/plg'
@@ -56,6 +57,7 @@ interface FormState {
   currentProcess: string
   goals: string
   data: string
+  catalog: string
 }
 
 const INITIAL_FORM: FormState = {
@@ -68,6 +70,7 @@ const INITIAL_FORM: FormState = {
   currentProcess: '',
   goals: '',
   data: '',
+  catalog: '',
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -161,6 +164,7 @@ export default function ValidationWizard() {
         current_process: form.currentProcess.trim() || undefined,
         goals: form.goals.trim(),
         data: form.data.trim() || undefined,
+        catalog: form.catalog.trim() || undefined,
         language: es ? 'es' : 'en',
       })
       setSubmitted(true)
@@ -361,6 +365,25 @@ export default function ValidationWizard() {
               className={inputCls(false)}
             />
           </Field>
+
+          {form.industry === 'retail' && (
+            <Field
+              label={t('¿Qué vende tu tienda? (opcional)', 'What does your store sell? (optional)')}
+              icon={ShoppingCart}
+              hint={t(
+                'Así sembramos el catálogo con TUS productos reales, no genéricos.',
+                'So we seed the catalog with YOUR real products, not generic ones.'
+              )}
+            >
+              <input
+                type="text"
+                value={form.catalog}
+                onChange={(e) => update('catalog', e.target.value)}
+                placeholder={t('Ej: vinilos, CDs, DVDs, instrumentos musicales', 'e.g. vinyl records, CDs, DVDs, musical instruments')}
+                className={inputCls(false)}
+              />
+            </Field>
+          )}
         </div>
       )}
 

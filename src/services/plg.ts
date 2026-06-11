@@ -17,6 +17,7 @@ export interface ValidationRequestPayload {
   current_process?: string;
   goals: string;
   data?: string;
+  catalog?: string;
   language?: 'en' | 'es';
 }
 
