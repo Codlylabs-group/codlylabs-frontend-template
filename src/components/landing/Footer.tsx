@@ -16,24 +16,12 @@ export default function Footer() {
           <Link to="/policies" className="text-slate-400 hover:text-white transition-colors text-sm">
             {t('footer.policies')}
           </Link>
-          <Link to="/about-platform" className="text-slate-400 hover:text-white transition-colors text-sm">
-            {t('footer.about')}
-          </Link>
           <Link to="/contact" className="text-slate-400 hover:text-white transition-colors text-sm">
             {t('footer.contact')}
           </Link>
         </div>
         <div className="text-slate-400 text-sm">
           {t('footer.copyright', { year: currentYear })}
-        </div>
-      </div>
-
-      {/* Legal compliance disclaimer */}
-      <div className="border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-8 py-6">
-          <p className="text-slate-500 text-xs leading-relaxed italic">
-            {t('footer.complianceDisclaimer')}
-          </p>
         </div>
       </div>
     </footer>

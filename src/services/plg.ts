@@ -26,6 +26,40 @@ export interface ValidationRequestResponse {
   message: string;
 }
 
+export interface ReviewEditorInfo {
+  anon_session_id: string;
+  poc_id: string;
+  company_name: string;
+  email: string;
+  full_name: string;
+  vertical: string;
+  prompt: string;
+  status: string;
+  review_status: string;
+  preview_url: string | null;
+  email_sent: boolean;
+  repair_mode: boolean;
+  max_interactions: number;
+}
+
+export interface ReviewEditorChatResponse {
+  success: boolean;
+  message: string;
+  files_modified: string[];
+  files_created: string[];
+  suggestions: string[];
+  errors: string[];
+  interaction_count: number;
+  max_interactions: number;
+}
+
+export interface ReviewEditorActionResponse {
+  status: 'approved' | 'rejected' | string;
+  already_processed: boolean;
+  message: string;
+  email_sent: boolean;
+}
+
 export interface FreeDiagnosticRequest {
   industry: string;
   company_size: string;
@@ -376,6 +410,39 @@ class PLGService {
     const response = await api.post(`/api/v1/plg/anonymous-editor/${anonSessionId}/chat`, {
       message,
       conversation_history: conversationHistory || [],
+    })
+    return response.data
+  }
+
+  // ─── Internal Review Editor ─────────────────────────────────
+
+  async reviewEditorInfo(token: string): Promise<ReviewEditorInfo> {
+    const response = await api.get('/api/v1/plg/validation-review/editor', {
+      params: { token },
+    })
+    return response.data
+  }
+
+  async reviewEditorChat(
+    token: string,
+    message: string,
+    conversationHistory?: Array<{ role: string; content: string }>
+  ): Promise<ReviewEditorChatResponse> {
+    const response = await api.post('/api/v1/plg/validation-review/editor/chat', {
+      token,
+      message,
+      conversation_history: conversationHistory || [],
+    })
+    return response.data
+  }
+
+  async reviewEditorAction(
+    token: string,
+    action: 'approve' | 'reject'
+  ): Promise<ReviewEditorActionResponse> {
+    const response = await api.post('/api/v1/plg/validation-review/editor/action', {
+      token,
+      action,
     })
     return response.data
   }

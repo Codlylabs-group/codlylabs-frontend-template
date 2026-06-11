@@ -35,6 +35,8 @@ export default function AdminPocsPage() {
   const [error, setError] = useState('')
   const [downloadingPocId, setDownloadingPocId] = useState<string | null>(null)
   const [deletingPocId, setDeletingPocId] = useState<string | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false)
 
   useEffect(() => {
     if (!userData) {
@@ -103,11 +105,75 @@ export default function AdminPocsPage() {
     try {
       await api.delete(`/api/v1/admin/pocs/${pocId}`)
       setPocs(pocs.filter((p) => p.id !== pocId))
+      setSelectedIds((prev) => {
+        const next = new Set(prev)
+        next.delete(pocId)
+        return next
+      })
     } catch (err: any) {
       console.error('Error deleting POC:', err)
       alert('Error al eliminar la POC')
     } finally {
       setDeletingPocId(null)
+    }
+  }
+
+  const allSelected = pocs.length > 0 && selectedIds.size === pocs.length
+  const someSelected = selectedIds.size > 0 && selectedIds.size < pocs.length
+
+  const toggleSelectAll = () => {
+    setSelectedIds(allSelected ? new Set() : new Set(pocs.map((p) => p.id)))
+  }
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.size === 0) return
+    if (!window.confirm(`¿Eliminar ${selectedIds.size} POC(s) seleccionada(s)? Esta acción no se puede deshacer.`)) {
+      return
+    }
+
+    setIsBulkDeleting(true)
+    try {
+      const ids = Array.from(selectedIds)
+      await api.post('/api/v1/admin/pocs/bulk-delete', { ids })
+      setPocs((prev) => prev.filter((p) => !selectedIds.has(p.id)))
+      setSelectedIds(new Set())
+    } catch (err: any) {
+      console.error('Error bulk deleting POCs:', err)
+      alert('Error al eliminar las POCs seleccionadas')
+    } finally {
+      setIsBulkDeleting(false)
+    }
+  }
+
+  const handleDeleteAll = async () => {
+    if (pocs.length === 0) return
+    if (!window.confirm('¿Eliminar TODAS las POCs de la plataforma? Esta acción no se puede deshacer.')) {
+      return
+    }
+
+    setIsBulkDeleting(true)
+    try {
+      const response = await api.post('/api/v1/admin/pocs/bulk-delete', { delete_all: true })
+      setPocs([])
+      setSelectedIds(new Set())
+      alert(`Se eliminaron ${response.data.deleted_count} POCs.`)
+    } catch (err: any) {
+      console.error('Error deleting all POCs:', err)
+      alert('Error al eliminar todas las POCs')
+    } finally {
+      setIsBulkDeleting(false)
     }
   }
 
@@ -190,14 +256,34 @@ export default function AdminPocsPage() {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">POCs Creadas</h1>
             <p className="text-gray-600">Listado de todas las POCs generadas en la plataforma</p>
           </div>
-          <button
-            onClick={handleSync}
-            disabled={isSyncing || isLoading}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-            {isSyncing ? 'Sincronizando...' : 'Sincronizar'}
-          </button>
+          <div className="flex items-center gap-3">
+            {selectedIds.size > 0 && (
+              <button
+                onClick={handleDeleteSelected}
+                disabled={isBulkDeleting}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+              >
+                <Trash2 className="w-4 h-4" />
+                Eliminar seleccionadas ({selectedIds.size})
+              </button>
+            )}
+            <button
+              onClick={handleDeleteAll}
+              disabled={isBulkDeleting || isLoading || pocs.length === 0}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+            >
+              <Trash2 className={`w-4 h-4 ${isBulkDeleting ? 'animate-pulse' : ''}`} />
+              {isBulkDeleting ? 'Eliminando...' : 'Eliminar todas'}
+            </button>
+            <button
+              onClick={handleSync}
+              disabled={isSyncing || isLoading}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+              {isSyncing ? 'Sincronizando...' : 'Sincronizar'}
+            </button>
+          </div>
         </div>
 
         {/* Error Message */}
@@ -220,6 +306,16 @@ export default function AdminPocsPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
+                  <th className="px-6 py-3 text-left">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      ref={(el) => { if (el) el.indeterminate = someSelected }}
+                      onChange={toggleSelectAll}
+                      aria-label="Seleccionar todas"
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    />
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Tipo de POC
                   </th>
@@ -242,7 +338,19 @@ export default function AdminPocsPage() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {pocs.map((poc) => (
-                  <tr key={poc.id} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={poc.id}
+                    className={`transition-colors ${selectedIds.has(poc.id) ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(poc.id)}
+                        onChange={() => toggleSelect(poc.id)}
+                        aria-label="Seleccionar POC"
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      />
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <FileCode className="w-5 h-5 text-blue-600 mr-3" />

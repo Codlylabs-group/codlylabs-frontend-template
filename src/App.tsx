@@ -41,6 +41,7 @@ const ShadowModePage = lazy(() => import('./pages/ShadowModePage'))
 // Try / Preview
 const TryPage = lazy(() => import('./pages/TryPage'))
 const TryEditorPage = lazy(() => import('./pages/TryEditorPage'))
+const ReviewPocEditorPage = lazy(() => import('./pages/ReviewPocEditorPage'))
 const WelcomePage = lazy(() => import('./pages/WelcomePage'))
 const InteractivePreviewPage = lazy(() => import('./pages/InteractivePreviewPage'))
 const SharedPreviewPage = lazy(() => import('./pages/SharedPreviewPage'))
@@ -130,6 +131,7 @@ const TENANT_ALLOWED_PREFIXES = [
   '/profile',
   '/invite/',
   '/preview/',
+  '/review/',
 ]
 
 function TenantBoundary({ children }: { children: React.ReactNode }) {
@@ -213,6 +215,7 @@ function App() {
                 {/* Try / Preview */}
                 <Route path="/try" element={<TryPage />} />
                 <Route path="/try/editor/:anonSessionId" element={<TryEditorPage />} />
+                <Route path="/review/pocs/:token" element={<AdminRouteGuard><ReviewPocEditorPage /></AdminRouteGuard>} />
                 <Route path="/welcome" element={<WelcomePage />} />
                 <Route path="/preview/:pocId" element={<InteractivePreviewPage />} />
                 <Route path="/shared/:shareSlug" element={<SharedPreviewPage />} />

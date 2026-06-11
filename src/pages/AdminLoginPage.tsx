@@ -1,5 +1,5 @@
 import { useState, FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Lock, User, AlertCircle } from 'lucide-react'
 import { api } from '../services/api'
 import { useAppDispatch } from '../store/hooks'
@@ -8,6 +8,7 @@ import { authStorage } from '../services/authStorage'
 
 export default function AdminLoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const dispatch = useAppDispatch()
 
   const [username, setUsername] = useState('')
@@ -33,8 +34,10 @@ export default function AdminLoginPage() {
       authStorage.saveTokens(access_token, refresh_token)
       authStorage.saveUserData(admin)
 
-      // Redirect to admin dashboard
-      navigate('/admin')
+      const from = (location.state as { from?: { pathname?: string; search?: string } } | null)?.from
+      const queryReturnTo = new URLSearchParams(location.search).get('returnTo')
+      const returnPath = queryReturnTo || (from?.pathname ? `${from.pathname}${from.search || ''}` : '/admin')
+      navigate(returnPath)
     } catch (err: any) {
       console.error('Admin login error:', err)
       setError(err.response?.data?.detail || 'Invalid username or password')

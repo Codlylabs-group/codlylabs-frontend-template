@@ -15,7 +15,6 @@ import {
   AlertTriangle,
   Wallet,
   XCircle,
-  ClipboardCheck,
   Lightbulb,
   Building2,
   ShoppingCart,
@@ -24,6 +23,10 @@ import {
   Send,
   Rocket,
   Settings,
+  Search,
+  UserCheck,
+  Box,
+  Compass,
 } from 'lucide-react'
 import Footer from '../components/landing/Footer'
 import ValidationWizard from '../components/landing/ValidationWizard'
@@ -95,16 +98,15 @@ export default function HomePage() {
   const packageItems = [
     { icon: FileText, title: t('Executive Summary', 'Executive Summary'), desc: t('¿Vale la pena construirlo?', 'Is it worth building?') },
     { icon: TrendingUp, title: t('ROI Analysis', 'ROI Analysis'), desc: t('Impacto esperado.', 'Expected impact.') },
-    { icon: Layers, title: t('Arquitectura propuesta', 'Proposed architecture'), desc: t('Cómo se construye.', 'How it gets built.') },
-    { icon: Zap, title: t('PoC funcional', 'Functional PoC'), desc: t('Demostración funcional.', 'Working demonstration.') },
-    { icon: ClipboardCheck, title: t('MVP Readiness Report', 'MVP Readiness Report'), desc: t('Qué falta para producción.', "What's missing for production.") },
+    { icon: Layers, title: t('Arquitectura propuesta', 'Proposed architecture'), desc: t('Cómo se construye.', "How it's built.") },
+    { icon: Zap, title: t('PoC Funcional', 'Functional PoC'), desc: t('Demostración funcional.', 'Functional demonstration.') },
+    { icon: FileCheck, title: t('MVP Readiness Report', 'MVP Readiness Report'), desc: t('Qué falta para producción.', "What's missing for production.") },
     { icon: MapIcon, title: t('Production Roadmap', 'Production Roadmap'), desc: t('Plan completo de ejecución.', 'Full execution plan.') },
   ]
 
   const pipeline = [
     { icon: Lightbulb, name: t('Idea', 'Idea'), desc: '' },
     { icon: ShieldCheck, name: 'AI Validation', desc: t('Validamos. Gratis. 24 hs.', 'We validate. Free. 24h.'), highlight: true },
-    { icon: Zap, name: 'PoC', desc: t('Evidencia funcional.', 'Functional evidence.') },
     { icon: Layers, name: 'MVP Factory', desc: t('PoC → MVP funcional.', 'PoC → working MVP.') },
     { icon: Rocket, name: 'Production Factory', desc: t('A producción.', 'To production.') },
     { icon: Settings, name: 'AI Operations', desc: t('Operamos y evolucionamos.', 'We operate and evolve.') },
@@ -117,11 +119,68 @@ export default function HomePage() {
     { icon: FileCheck, sector: t('Seguros', 'Insurance'), items: ['Claims', t('Riesgo', 'Risk'), t('Automatización', 'Automation')] },
   ]
 
-  const differential = [
-    t('qué construir', 'what to build'),
-    t('cómo construirlo', 'how to build it'),
-    t('cuánto costará', 'how much it will cost'),
-    t('cuánto valor generará', 'how much value it will create'),
+  const comparison = [
+    {
+      method: t('Consultora tradicional', 'Traditional consultancy'),
+      time: t('6 semanas', '6 weeks'),
+      cost: 'USD 50.000 — 200.000',
+      result: t('Slides o mockups', 'Slides or mockups'),
+    },
+    {
+      method: t('Consultora boutique', 'Boutique consultancy'),
+      time: t('2-4 semanas', '2-4 weeks'),
+      cost: 'USD 20.000 — 80.000',
+      result: t('Prototipo parcial', 'Partial prototype'),
+    },
+    {
+      method: t('Equipo interno', 'In-house team'),
+      time: t('Semanas o meses', 'Weeks or months'),
+      cost: t('Costo de oportunidad alto', 'High opportunity cost'),
+      result: t('Variable e incierto', 'Variable and uncertain'),
+    },
+    {
+      method: 'CodlyLabs',
+      time: t('Menos de 24 horas', 'Under 24 hours'),
+      cost: t('Sin costo inicial', 'No upfront cost'),
+      result: t('Sistema funcional + plan completo', 'Working system + full plan'),
+      highlight: true,
+    },
+  ]
+
+  const pillars = [
+    { icon: ShieldCheck, name: 'VALIDATE', desc: t('Tu iniciativa de IA validada con evidencia funcional en menos de 24 horas.', 'Your AI initiative validated with functional evidence in under 24 hours.') },
+    { icon: Layers, name: 'BUILD', desc: t('El producto construido sobre esa validación. En semanas, no en meses.', 'The product built on that validation. In weeks, not months.') },
+    { icon: Settings, name: 'OPERATE', desc: t('El producto operando, monitoreado y evolucionando continuamente.', 'The product running, monitored and continuously evolving.') },
+  ]
+
+  const validationAgents = [
+    {
+      icon: Search,
+      title: t('Agentes de Discovery', 'Discovery agents'),
+      desc: t('Analizan el desafío de negocio.', 'Analyze the business challenge.'),
+    },
+    {
+      icon: Layers,
+      title: t('Agentes de Arquitectura', 'Architecture agents'),
+      desc: t('Diseñan la solución.', 'Design the solution.'),
+    },
+    {
+      icon: ShieldCheck,
+      title: t('Agentes de Validación', 'Validation agents'),
+      desc: t('Evalúan factibilidad, riesgos, compliance y ROI esperado.', 'Assess feasibility, risks, compliance and expected ROI.'),
+    },
+    {
+      icon: Rocket,
+      title: t('Agentes de Generación', 'Generation agents'),
+      desc: t('Construyen prototipos funcionales que demuestran el concepto.', 'Build functional prototypes that demonstrate the concept.'),
+    },
+  ]
+
+  const validationOutcomes = [
+    { icon: CheckCircle2, label: t('Iniciativa de IA validada', 'Validated AI initiative') },
+    { icon: Box, label: t('Prueba de concepto funcional', 'Functional proof of concept') },
+    { icon: MapIcon, label: t('Roadmap a producción', 'Production roadmap') },
+    { icon: Compass, label: t('Recomendación clara', 'Clear recommendation') },
   ]
 
   return (
@@ -194,13 +253,18 @@ export default function HomePage() {
                 </div>
               )}
             </div>
-            <button
-              type="button"
-              onClick={scrollTo('validar')}
-              className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-indigo-500"
-            >
-              {t('Solicitar AI Validation', 'Request AI Validation')}
-            </button>
+            <div className="relative">
+              <span className="absolute -right-1.5 -top-2 z-10 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm ring-2 ring-white">
+                {t('Gratis', 'Free')}
+              </span>
+              <button
+                type="button"
+                onClick={scrollTo('validar')}
+                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-base font-semibold text-white shadow-sm transition-all hover:bg-indigo-500"
+              >
+                {t('Solicitar mi validación', 'Request my validation')}
+              </button>
+            </div>
           </div>
         </div>
       </nav>
@@ -216,21 +280,22 @@ export default function HomePage() {
             style={{ fontFamily: 'Manrope, sans-serif' }}
           >
             <Zap className="h-3.5 w-3.5" />
-            AI Validation Studio
+            AI Innovation Studio
           </p>
           <h1
-            className="mb-6 text-5xl font-extrabold leading-[1.05] tracking-tight text-gray-900 sm:text-6xl md:text-[4.25rem]"
+            className="mb-5 text-4xl font-extrabold leading-[1.08] tracking-tight text-gray-900 sm:text-5xl md:text-[3.75rem]"
             style={{ fontFamily: 'Manrope, sans-serif' }}
           >
-            <span className="text-indigo-600">{t('Validá iniciativas de IA en 24 horas.', 'Validate AI initiatives in 24 hours.')}</span>
-            <span className="mt-2 block text-2xl font-bold text-gray-900 sm:text-3xl md:text-4xl">
-              {t('Antes de invertir meses y miles de dólares en desarrollo.', 'Before investing months and thousands of dollars in development.')}
-            </span>
+            <span className="text-gray-900">{t('La IA que imaginás,', 'The AI you imagine,')}</span>
+            <span className="block text-indigo-600">{t('construida con precisión.', 'built with precision.')}</span>
           </h1>
-          <p className="mx-auto mb-8 max-w-2xl text-xl leading-relaxed text-gray-700 md:text-2xl">
+          <p className="mb-6 text-xl font-bold text-gray-900 md:text-2xl" style={{ fontFamily: 'Manrope, sans-serif' }}>
+            {t('Sin fricciones. Con impacto.', 'No friction. With impact.')}
+          </p>
+          <p className="mx-auto mb-8 max-w-2xl text-lg leading-relaxed text-gray-700 md:text-xl">
             {t(
-              'Enviános tu idea. Te devolvemos un análisis estratégico, una PoC funcional y un roadmap completo hacia MVP y producción.',
-              'Send us your idea. We return a strategic analysis, a working PoC and a full roadmap to MVP and production.'
+              'Transformación empresarial con IA. Validada, construida y operada con precisión. Nosotros en cada paso.',
+              'Enterprise transformation with AI. Validated, built and operated with precision. Us at every step.'
             )}
           </p>
 
@@ -250,21 +315,19 @@ export default function HomePage() {
           </div>
 
           <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <button
-              type="button"
-              onClick={scrollTo('validar')}
-              className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-8 py-4 text-lg font-semibold text-white shadow-lg shadow-indigo-200 transition-all hover:bg-indigo-500"
-            >
-              {t('Solicitar AI Validation gratuita', 'Request free AI Validation')}
-              <ArrowRight className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              onClick={scrollTo('que-recibis')}
-              className="inline-flex items-center gap-2 rounded-2xl border border-gray-300 bg-white px-8 py-4 text-lg font-semibold text-gray-700 transition-all hover:bg-gray-50"
-            >
-              {t('Ver ejemplo de validación', 'See a sample validation')}
-            </button>
+            <div className="relative">
+              <span className="absolute -right-2 -top-2 z-10 rounded-full bg-emerald-600 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-white shadow-sm ring-2 ring-white">
+                {t('Gratis', 'Free')}
+              </span>
+              <button
+                type="button"
+                onClick={scrollTo('validar')}
+                className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-8 py-4 text-lg font-semibold text-white shadow-lg shadow-indigo-200 transition-all hover:bg-indigo-500"
+              >
+                {t('Solicitar mi validación', 'Request my validation')}
+                <ArrowRight className="h-5 w-5" />
+              </button>
+            </div>
           </div>
           <p className="mt-4 text-sm text-gray-500">
             {t('Sin tarjeta. Sin compromiso. Recibís el acceso por email.', 'No card. No commitment. You get access by email.')}
@@ -272,7 +335,142 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Sección 2: El problema */}
+      {/* Sección 1b: Cómo validamos iniciativas de IA (manifiesto) */}
+      <section className="border-t border-gray-100 bg-white py-24">
+        <div className="mx-auto max-w-5xl px-6">
+          {/* Encabezado + lead */}
+          <div className="mx-auto max-w-3xl text-center">
+            <span className="text-sm font-bold uppercase tracking-widest text-indigo-600">
+              {t('Cómo validamos iniciativas de IA', 'How we validate AI initiatives')}
+            </span>
+            <h2
+              className="mx-auto mt-3 max-w-2xl text-3xl font-bold leading-[1.2] text-gray-900 md:text-4xl"
+              style={{ fontFamily: 'Manrope, sans-serif' }}
+            >
+              {t(
+                'La mayoría de las empresas fallan porque eligen las iniciativas equivocadas.',
+                'Most companies fail because they choose the wrong initiatives.'
+              )}
+            </h2>
+            <p className="mx-auto mt-5 text-lg leading-relaxed text-gray-600">
+              {t(
+                'Subestiman la complejidad, pasan por alto los requisitos de compliance o invierten en proyectos que nunca llegan a producción. CodlyLabs fue creado para resolver ese problema.',
+                'They underestimate complexity, overlook compliance requirements, or invest in projects that never reach production. CodlyLabs was created to solve that problem.'
+              )}
+            </p>
+          </div>
+
+          {/* Banda manifiesto: hybrid intelligence */}
+          <div className="mx-auto mt-12 max-w-3xl border-y border-gray-200 py-8 text-center">
+            <p className="text-xl font-medium leading-relaxed text-gray-900 md:text-2xl" style={{ fontFamily: 'Manrope, sans-serif' }}>
+              {t(
+                'Detrás de cada validación hay un sistema de inteligencia híbrida: agentes de IA especializados en múltiples verticales trabajando junto a expertos en tecnología con experiencia real.',
+                'Behind every validation is a hybrid intelligence system — specialized AI agents across multiple verticals working alongside experienced technology experts.'
+              )}
+            </p>
+          </div>
+
+          {/* Los 4 agentes */}
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {validationAgents.map((agent) => {
+              const Icon = agent.icon
+              return (
+                <div key={agent.title} className="rounded-2xl border border-gray-100 bg-gray-50/60 p-6">
+                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-sm">
+                    <Icon className="h-5 w-5 text-indigo-600" />
+                  </div>
+                  <p className="font-bold text-gray-900" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                    {agent.title}
+                  </p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-gray-600">{agent.desc}</p>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Human-in-the-loop */}
+          <div className="mt-6 flex items-start gap-4 rounded-2xl border border-indigo-100 bg-indigo-50 p-6 md:p-8">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-600">
+              <UserCheck className="h-5 w-5 text-white" />
+            </div>
+            <p className="text-base leading-relaxed text-indigo-900 md:text-lg">
+              {t(
+                'Luego, expertos humanos revisan cada resultado, garantizando que las recomendaciones sean técnicamente sólidas, comercialmente viables y alineadas con la realidad de la empresa. Esta combinación nos permite entregar en horas lo que tradicionalmente requiere semanas de consultoría.',
+                'Human experts then review every outcome, ensuring that recommendations are technically sound, commercially viable, and aligned with enterprise realities. This combination allows us to deliver in hours what traditionally requires weeks of consulting engagements.'
+              )}
+            </p>
+          </div>
+
+          {/* The outcome */}
+          <div className="mt-16 text-center">
+            <p className="text-sm font-semibold uppercase tracking-wide text-gray-400">
+              {t('El resultado no es un slide deck.', 'The outcome is not a slide deck.')}
+            </p>
+            <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+              {validationOutcomes.map((o) => {
+                const Icon = o.icon
+                return (
+                  <div key={o.label} className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                    <Icon className="mx-auto mb-3 h-6 w-6 text-indigo-600" />
+                    <p className="text-sm font-bold text-gray-900" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                      {o.label}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Cierre manifiesto */}
+          <div className="mx-auto mt-16 max-w-3xl text-center">
+            <p className="text-2xl font-bold leading-snug text-gray-900 md:text-[1.75rem]" style={{ fontFamily: 'Manrope, sans-serif' }}>
+              {t(
+                'El futuro de la IA no se trata de generar más software. Se trata de ayudar a las organizaciones a tomar mejores decisiones, más rápido.',
+                "The future of AI is not about generating more software. It's about helping organizations make better decisions, faster."
+              )}
+            </p>
+            <p className="mt-5 text-lg font-semibold text-indigo-600" style={{ fontFamily: 'Manrope, sans-serif' }}>
+              {t('Eso es lo que hace CodlyLabs.', 'That is what CodlyLabs does.')}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Sección 8: La Categoría — AI Innovation Studio (movida debajo de Cómo validamos) */}
+      <section className="py-24" style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' }}>
+        <div className="mx-auto max-w-5xl px-6 text-center text-white">
+          <h2 className="text-3xl font-extrabold leading-tight md:text-[2.75rem]" style={{ fontFamily: 'Manrope, sans-serif' }}>
+            {t('No somos una consultora. No somos una herramienta.', "We're not a consultancy. We're not a tool.")}
+            <span className="block">{t('Somos algo que no existía.', "We're something that didn't exist before.")}</span>
+          </h2>
+          <p className="mt-5 text-xl font-semibold text-indigo-100" style={{ fontFamily: 'Manrope, sans-serif' }}>
+            {t('Somos un AI Innovation Studio.', "We're an AI Innovation Studio.")}
+          </p>
+          <p className="mx-auto mt-6 max-w-3xl text-lg leading-relaxed text-indigo-50">
+            {t(
+              'Las empresas que transforman su industria con IA necesitan más que una herramienta que genera código. Necesitan un socio que valide la idea, construya el producto y lo opere con precisión. Eso es lo que hacemos. De principio a fin. Sin que el cliente cambie de proveedor en ningún paso.',
+              'Companies that transform their industry with AI need more than a tool that generates code. They need a partner that validates the idea, builds the product and operates it with precision. That is what we do. End to end. Without the client switching providers at any step.'
+            )}
+          </p>
+          <div className="mt-12 grid gap-6 md:grid-cols-3">
+            {pillars.map((p) => {
+              const Icon = p.icon
+              return (
+                <div key={p.name} className="rounded-3xl border border-white/20 bg-white/10 p-7 text-left backdrop-blur">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
+                    <Icon className="h-6 w-6 text-white" />
+                  </div>
+                  <p className="text-lg font-extrabold tracking-wide" style={{ fontFamily: 'Manrope, sans-serif' }}>{p.name}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-indigo-50">{p.desc}</p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Sección 2: El problema — OCULTA (envuelta en {false &&} para reactivar fácil) */}
+      {false && (
       <section className="bg-white py-24">
         <div className="mx-auto max-w-5xl px-6">
           <div className="mb-14 text-center">
@@ -308,6 +506,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Sección 3: Cómo funciona */}
       <section id="como-funciona" className="py-24" style={{ background: 'linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%)' }}>
@@ -324,9 +523,9 @@ export default function HomePage() {
                 <Send className="h-6 w-6 text-indigo-600" />
               </div>
               <h3 className="mb-2 text-xl font-bold text-gray-900" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                {t('1. Enviás tu iniciativa', '1. Send your initiative')}
+                {t('1. Describí tu iniciativa de IA', '1. Describe your AI initiative')}
               </h3>
-              <p className="mb-4 text-gray-600">{t('Describí tu problema.', 'Describe your problem.')}</p>
+              <p className="mb-4 text-gray-600">{t('Contanos el problema que querés resolver.', 'Tell us the problem you want to solve.')}</p>
               <div className="flex flex-wrap gap-2">
                 {examples.map((ex) => (
                   <span key={ex} className="rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
@@ -341,7 +540,7 @@ export default function HomePage() {
                 <ShieldCheck className="h-6 w-6 text-indigo-600" />
               </div>
               <h3 className="mb-2 text-xl font-bold text-gray-900" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                {t('2. CodlyLabs la valida', '2. CodlyLabs validates it')}
+                {t('2. La validamos con inteligencia real', '2. We validate it with real intelligence')}
               </h3>
               <p className="mb-4 text-gray-600">{t('Analizamos cada dimensión clave:', 'We analyze every key dimension:')}</p>
               <div className="space-y-2">
@@ -359,12 +558,12 @@ export default function HomePage() {
                 <FileText className="h-6 w-6 text-indigo-600" />
               </div>
               <h3 className="mb-2 text-xl font-bold text-gray-900" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                {t('3. Recibís un AI Validation Package', '3. You get an AI Validation Package')}
+                {t('3. Recibís tu AI Validation Package', '3. You get your AI Validation Package')}
               </h3>
               <p className="text-gray-600">
                 {t(
-                  'Análisis estratégico, PoC funcional y roadmap completo hacia producción.',
-                  'Strategic analysis, working PoC and a full roadmap to production.'
+                  'Análisis estratégico, PoC funcional y roadmap completo. En menos de 24 horas.',
+                  'Strategic analysis, a functional PoC and a full roadmap. In under 24 hours.'
                 )}
               </p>
             </div>
@@ -380,10 +579,10 @@ export default function HomePage() {
             <h2 className="mt-3 text-3xl font-bold text-gray-900 md:text-4xl" style={{ fontFamily: 'Manrope, sans-serif' }}>
               {t('Tu AI Validation Package', 'Your AI Validation Package')}
             </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
+            <p className="mx-auto mt-4 max-w-3xl text-lg text-gray-600">
               {t(
                 'Todo lo que necesitás para decidir si vale la pena invertir en tu iniciativa de IA.',
-                'Everything you need to decide whether your AI initiative is worth the investment.'
+                'Everything you need to decide whether your AI initiative is worth investing in.'
               )}
             </p>
           </div>
@@ -404,32 +603,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Sección 5: El verdadero diferencial */}
-      <section className="py-24" style={{ background: 'radial-gradient(circle at 30% 20%, #e4dfff 0%, #f8f9fa 55%)' }}>
-        <div className="mx-auto max-w-4xl px-6 text-center">
-          <h2 className="text-3xl font-extrabold text-gray-900 md:text-5xl" style={{ fontFamily: 'Manrope, sans-serif' }}>
-            {t('No entregamos prototipos.', "We don't deliver prototypes.")}
-            <span className="block text-indigo-600">{t('Entregamos decisiones.', 'We deliver decisions.')}</span>
-          </h2>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-700">
-            {t(
-              'Mientras otras herramientas generan código, CodlyLabs te ayuda a decidir:',
-              'While other tools generate code, CodlyLabs helps you decide:'
-            )}
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            {differential.map((d) => (
-              <span key={d} className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-white px-5 py-2.5 text-sm font-semibold text-indigo-700">
-                <CheckCircle2 className="h-4 w-4 text-indigo-500" />
-                {d}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Sección 6: De la idea a producción (pipeline) */}
-      <section className="bg-white py-24">
+      {/* Sección 5: De la idea a producción (pipeline) */}
+      <section className="py-24" style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%)' }}>
         <div className="mx-auto max-w-6xl px-6">
           <div className="mb-16 text-center">
             <span className="text-sm font-bold uppercase tracking-widest text-indigo-600">{t('De la idea a producción', 'From idea to production')}</span>
@@ -437,19 +612,19 @@ export default function HomePage() {
               {t('Un proceso completo, no una herramienta suelta.', 'A complete process, not a standalone tool.')}
             </h2>
           </div>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
             {pipeline.map((stage, i) => {
               const Icon = stage.icon
               return (
                 <div
                   key={stage.name}
                   className={`relative rounded-2xl border p-5 text-center ${
-                    stage.highlight ? 'border-indigo-300 bg-indigo-50' : 'border-gray-100 bg-gray-50/60'
+                    stage.highlight ? 'border-indigo-300 bg-indigo-50' : 'border-gray-100 bg-white'
                   }`}
                 >
                   <div
                     className={`mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl ${
-                      stage.highlight ? 'bg-indigo-600' : 'bg-white shadow-sm'
+                      stage.highlight ? 'bg-indigo-600' : 'bg-gray-50'
                     }`}
                   >
                     <Icon className={`h-5 w-5 ${stage.highlight ? 'text-white' : 'text-indigo-600'}`} />
@@ -471,21 +646,21 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Sección 7: Casos de uso */}
-      <section id="casos-de-uso" className="py-24" style={{ background: 'linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%)' }}>
+      {/* Sección 6: Casos de uso */}
+      <section id="casos-de-uso" className="bg-white py-24">
         <div className="mx-auto max-w-6xl px-6">
           <div className="mb-16 text-center">
             <span className="text-sm font-bold uppercase tracking-widest text-indigo-600">{t('Casos de uso', 'Use cases')}</span>
             <h2 className="mt-3 text-3xl font-bold text-gray-900 md:text-4xl" style={{ fontFamily: 'Manrope, sans-serif' }}>
-              {t('Resolvemos problemas, no vendemos tecnología.', 'We solve problems, we don\'t sell technology.')}
+              {t('Resolvemos problemas, no vendemos tecnología.', "We solve problems, we don't sell technology.")}
             </h2>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {useCases.map((uc) => {
               const Icon = uc.icon
               return (
-                <div key={uc.sector} className="rounded-3xl border border-gray-100 bg-white p-7 shadow-sm">
-                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50">
+                <div key={uc.sector} className="rounded-3xl border border-gray-100 bg-gray-50/60 p-7">
+                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm">
                     <Icon className="h-6 w-6 text-indigo-600" />
                   </div>
                   <h3 className="mb-4 text-xl font-bold text-gray-900" style={{ fontFamily: 'Manrope, sans-serif' }}>{uc.sector}</h3>
@@ -504,41 +679,46 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Sección 8: Tiempo */}
-      <section className="bg-white py-24">
-        <div className="mx-auto max-w-3xl px-6">
+      {/* Sección 7: Comparativa de velocidad + costo */}
+      <section className="py-24" style={{ background: 'linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%)' }}>
+        <div className="mx-auto max-w-5xl px-6">
           <div className="mb-12 text-center">
-            <span className="text-sm font-bold uppercase tracking-widest text-indigo-600">{t('Tiempo', 'Time')}</span>
-            <h2 className="mt-3 text-3xl font-bold text-gray-900 md:text-4xl" style={{ fontFamily: 'Manrope, sans-serif' }}>
-              {t('La diferencia es brutal.', 'The difference is brutal.')}
+            <span className="text-sm font-bold uppercase tracking-widest text-indigo-600">{t('Tiempo y costo', 'Time and cost')}</span>
+            <h2 className="mx-auto mt-3 max-w-3xl text-3xl font-bold text-gray-900 md:text-4xl" style={{ fontFamily: 'Manrope, sans-serif' }}>
+              {t('Mientras otros debaten si una idea funciona, vos ya tenés la respuesta.', 'While others debate whether an idea works, you already have the answer.')}
             </h2>
           </div>
-          <div className="overflow-hidden rounded-2xl border border-gray-200">
-            {[
-              { method: t('Consultora tradicional', 'Traditional consultancy'), time: t('4-8 semanas', '4-8 weeks') },
-              { method: t('Equipo interno', 'In-house team'), time: t('2-6 semanas', '2-6 weeks') },
-              { method: 'CodlyLabs', time: t('Menos de 24 horas', 'Under 24 hours'), highlight: true },
-            ].map((row) => (
-              <div
-                key={row.method}
-                className={`flex items-center justify-between border-b border-gray-100 px-6 py-5 last:border-b-0 ${
-                  row.highlight ? 'bg-indigo-600' : 'bg-white'
-                }`}
-              >
-                <span className={`font-semibold ${row.highlight ? 'text-white' : 'text-gray-700'}`}>{row.method}</span>
-                <span
-                  className={`text-lg font-extrabold ${row.highlight ? 'text-white' : 'text-gray-900'}`}
-                  style={{ fontFamily: 'Manrope, sans-serif' }}
-                >
-                  {row.time}
-                </span>
-              </div>
-            ))}
+          <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
+            <table className="w-full min-w-[640px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+                  <th className="px-5 py-3 font-semibold">{t('Método', 'Method')}</th>
+                  <th className="px-5 py-3 font-semibold">{t('Tiempo', 'Time')}</th>
+                  <th className="px-5 py-3 font-semibold">{t('Costo estimado', 'Estimated cost')}</th>
+                  <th className="px-5 py-3 font-semibold">{t('Resultado', 'Result')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {comparison.map((row) => (
+                  <tr
+                    key={row.method}
+                    className={`border-b border-gray-100 last:border-b-0 ${row.highlight ? 'bg-indigo-600' : ''}`}
+                  >
+                    <td className={`px-5 py-4 font-bold ${row.highlight ? 'text-white' : 'text-gray-900'}`} style={{ fontFamily: 'Manrope, sans-serif' }}>
+                      {row.method}
+                    </td>
+                    <td className={`px-5 py-4 ${row.highlight ? 'font-semibold text-white' : 'text-gray-700'}`}>{row.time}</td>
+                    <td className={`px-5 py-4 ${row.highlight ? 'font-semibold text-white' : 'text-gray-700'}`}>{row.cost}</td>
+                    <td className={`px-5 py-4 ${row.highlight ? 'text-indigo-100' : 'text-gray-500'}`}>{row.result}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
 
-      {/* Wizard / formulario */}
+      {/* Formulario / wizard */}
       <section
         id="validar"
         className="py-24"
@@ -547,12 +727,12 @@ export default function HomePage() {
         <div className="mx-auto max-w-3xl px-6">
           <div className="mb-10 text-center">
             <h2 className="text-3xl font-bold text-gray-900 md:text-4xl" style={{ fontFamily: 'Manrope, sans-serif' }}>
-              {t('¿Tenés una iniciativa de IA?', 'Got an AI initiative?')}
+              {t('Iniciá tu transformación de IA', 'Start your AI transformation')}
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-lg text-gray-600">
               {t(
-                'Enviála hoy. Mañana sabrás si vale la pena construirla — y exactamente cómo llevarla a producción.',
-                "Send it today. Tomorrow you'll know if it's worth building — and exactly how to take it to production."
+                'Completá el formulario. En menos de 24 horas recibís tu AI Validation Package con el prototipo funcional, el business case y el plan completo para construirlo.',
+                'Fill out the form. In under 24 hours you receive your AI Validation Package with the working prototype, the business case and the full plan to build it.'
               )}
             </p>
           </div>

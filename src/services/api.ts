@@ -51,9 +51,13 @@ api.interceptors.request.use((config) => {
 function forceLogout() {
   // If on admin pages, redirect to admin login — never clear tokens
   // or redirect to the user login flow (LinkedIn).
-  if (window.location.pathname.startsWith('/admin')) {
+  const isAdminAuthSurface =
+    window.location.pathname.startsWith('/admin') ||
+    window.location.pathname.startsWith('/review/pocs/')
+  if (isAdminAuthSurface) {
     if (!window.location.pathname.startsWith('/admin/login')) {
-      window.location.href = '/admin/login'
+      const currentPath = window.location.pathname + window.location.search
+      window.location.href = `/admin/login?returnTo=${encodeURIComponent(currentPath)}`
     }
     return
   }
@@ -123,7 +127,9 @@ api.interceptors.response.use(
 
     // When browsing admin pages, never enter the user token-refresh flow.
     // Admin auth is fully separate — let errors propagate to the page.
-    const isOnAdminPage = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')
+    const isOnAdminPage =
+      typeof window !== 'undefined' &&
+      (window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/review/pocs/'))
 
     if (status === 401 && (isAdminEndpoint || isOnAdminPage)) {
       return Promise.reject(error)
