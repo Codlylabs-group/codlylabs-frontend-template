@@ -1,8 +1,8 @@
-import { LayoutDashboard, Users, FileCode, Package, Linkedin, MessageSquare, Headphones, Brain, FileEdit, LogOut, Store, Building2, Activity, TrendingUp, CreditCard, FlaskConical, RefreshCw } from 'lucide-react'
+import { LayoutDashboard, Users, FileCode, Package, Headphones, Brain, FileEdit, LogOut, Store, Building2, Activity, TrendingUp, CreditCard, FlaskConical, RefreshCw, Megaphone } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 interface AdminSidebarProps {
-  currentPage: 'dashboard' | 'users' | 'organizations' | 'pocs' | 'vertical-packs' | 'marketplace' | 'linkedin' | 'linkedin-outreach' | 'sales-assistant' | 'patterns' | 'spec-editor' | 'training-agent' | 'system' | 'tenants' | 'analytics' | 'billing'
+  currentPage: 'dashboard' | 'users' | 'organizations' | 'pocs' | 'vertical-packs' | 'marketplace' | 'poc-social' | 'sales-assistant' | 'patterns' | 'spec-editor' | 'training-agent' | 'system' | 'tenants' | 'analytics' | 'billing'
   onLogout: () => void
 }
 
@@ -47,16 +47,10 @@ export default function AdminSidebar({ currentPage, onLogout }: AdminSidebarProp
       path: '/admin/marketplace'
     },
     {
-      id: 'linkedin',
-      label: 'Campaign Generator',
-      icon: Linkedin,
-      path: '/admin/linkedin'
-    },
-    {
-      id: 'linkedin-outreach',
-      label: 'LinkedIn Outreach',
-      icon: MessageSquare,
-      path: '/admin/linkedin-outreach'
+      id: 'poc-social',
+      label: 'Marketing',
+      icon: Megaphone,
+      path: '/admin/poc-social'
     },
     {
       id: 'sales-assistant',

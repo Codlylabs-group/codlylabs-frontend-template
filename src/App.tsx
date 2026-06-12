@@ -88,9 +88,8 @@ const AdminSystemPage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminSystemPa
 const AdminTenantsPage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminTenantsPage')) : () => null
 const AdminAnalyticsPage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminAnalyticsPage')) : () => null
 const AdminBillingPage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminBillingPage')) : () => null
-const AdminLinkedInPage = SALES_ENABLED ? lazy(() => import('./pages/AdminLinkedInPage')) : () => null
-const AdminLinkedInOutreachPage = SALES_ENABLED ? lazy(() => import('./pages/AdminLinkedInOutreachPage')) : () => null
 const AdminSalesAssistantPage = SALES_ENABLED ? lazy(() => import('./pages/AdminSalesAssistantPage')) : () => null
+const AdminPocSocialPage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminPocSocialPage')) : () => null
 
 // ─── AgenticRedirect (small, inline is fine) ────────────────────
 // Imported directly since OnboardingPage exports it as a named export.
@@ -261,8 +260,7 @@ function App() {
                 <Route path="/admin/pocs" element={<FeatureGate feature="admin_advanced"><AdminRouteGuard><AdminPocsPage /></AdminRouteGuard></FeatureGate>} />
                 <Route path="/admin/vertical-packs" element={<FeatureGate feature="admin_advanced"><AdminRouteGuard><AdminVerticalPacksPage /></AdminRouteGuard></FeatureGate>} />
                 <Route path="/admin/marketplace" element={<FeatureGate feature="marketplace"><AdminRouteGuard><AdminMarketplacePage /></AdminRouteGuard></FeatureGate>} />
-                <Route path="/admin/linkedin" element={<FeatureGate feature="sales_tools"><AdminRouteGuard><AdminLinkedInPage /></AdminRouteGuard></FeatureGate>} />
-                <Route path="/admin/linkedin-outreach" element={<FeatureGate feature="sales_tools"><AdminRouteGuard><AdminLinkedInOutreachPage /></AdminRouteGuard></FeatureGate>} />
+                <Route path="/admin/poc-social" element={<FeatureGate feature="admin_advanced"><AdminRouteGuard><AdminPocSocialPage /></AdminRouteGuard></FeatureGate>} />
                 <Route path="/admin/sales-assistant" element={<FeatureGate feature="sales_tools"><AdminRouteGuard><AdminSalesAssistantPage /></AdminRouteGuard></FeatureGate>} />
                 <Route path="/admin/patterns" element={<FeatureGate feature="admin_advanced"><AdminRouteGuard><AdminPatternsPage /></AdminRouteGuard></FeatureGate>} />
                 <Route path="/admin/spec-editor" element={<FeatureGate feature="admin_advanced"><AdminRouteGuard><AdminSpecEditorPage /></AdminRouteGuard></FeatureGate>} />

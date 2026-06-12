@@ -27,6 +27,7 @@ import {
   UserCheck,
   Box,
   Compass,
+  PlayCircle,
 } from 'lucide-react'
 import Footer from '../components/landing/Footer'
 import ValidationWizard from '../components/landing/ValidationWizard'
@@ -39,7 +40,13 @@ export default function HomePage() {
 
   const [isLangOpen, setIsLangOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [isPocVideoOpen, setIsPocVideoOpen] = useState(false)
+  const [isPocVideoVisible, setIsPocVideoVisible] = useState(false)
   const langRef = useRef<HTMLDivElement>(null)
+  const pocFunctionalVideo = {
+    src: '/media/poc-funcional-demo.mp4',
+    poster: '/media/poc-funcional-demo-poster.jpg',
+  }
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -59,6 +66,16 @@ export default function HomePage() {
 
   const scrollTo = (id: string) => () => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  const openPocVideo = () => {
+    setIsPocVideoOpen(true)
+    window.requestAnimationFrame(() => setIsPocVideoVisible(true))
+  }
+
+  const closePocVideo = () => {
+    setIsPocVideoVisible(false)
+    window.setTimeout(() => setIsPocVideoOpen(false), 180)
   }
 
   const valueProps = [
@@ -99,7 +116,12 @@ export default function HomePage() {
     { icon: FileText, title: t('Executive Summary', 'Executive Summary'), desc: t('¿Vale la pena construirlo?', 'Is it worth building?') },
     { icon: TrendingUp, title: t('ROI Analysis', 'ROI Analysis'), desc: t('Impacto esperado.', 'Expected impact.') },
     { icon: Layers, title: t('Arquitectura propuesta', 'Proposed architecture'), desc: t('Cómo se construye.', "How it's built.") },
-    { icon: Zap, title: t('PoC Funcional', 'Functional PoC'), desc: t('Demostración funcional.', 'Functional demonstration.') },
+    {
+      icon: Zap,
+      title: t('PoC Funcional', 'Functional PoC'),
+      desc: t('Demostración funcional.', 'Functional demonstration.'),
+      video: pocFunctionalVideo,
+    },
     { icon: FileCheck, title: t('MVP Readiness Report', 'MVP Readiness Report'), desc: t('Qué falta para producción.', "What's missing for production.") },
     { icon: MapIcon, title: t('Production Roadmap', 'Production Roadmap'), desc: t('Plan completo de ejecución.', 'Full execution plan.') },
   ]
@@ -589,19 +611,84 @@ export default function HomePage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {packageItems.map((d) => {
               const Icon = d.icon
+              const isVideoCard = Boolean(d.video)
+              const CardTag = isVideoCard ? 'button' : 'div'
               return (
-                <div key={d.title} className="rounded-2xl border border-gray-100 bg-gray-50/60 p-6">
-                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-sm">
-                    <Icon className="h-5 w-5 text-indigo-600" />
-                  </div>
+                <CardTag
+                  key={d.title}
+                  type={isVideoCard ? 'button' : undefined}
+                  onClick={isVideoCard ? openPocVideo : undefined}
+                  className={`group rounded-2xl border border-gray-100 bg-gray-50/60 p-6 text-left transition-all ${
+                    isVideoCard ? 'cursor-pointer hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-white hover:shadow-lg' : ''
+                  }`}
+                >
+                  {d.video ? (
+                    <div className="mb-4 overflow-hidden rounded-xl border border-gray-100 bg-gray-100 shadow-sm">
+                      <div className="relative aspect-video">
+                        <img
+                          src={d.video.poster}
+                          alt=""
+                          className="h-full w-full object-cover"
+                          onError={(event) => {
+                            event.currentTarget.style.display = 'none'
+                          }}
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-slate-950/20">
+                          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/95 text-indigo-600 shadow-lg transition-transform group-hover:scale-105">
+                            <PlayCircle className="h-5 w-5" />
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-sm">
+                      <Icon className="h-5 w-5 text-indigo-600" />
+                    </div>
+                  )}
                   <p className="font-bold text-gray-900" style={{ fontFamily: 'Manrope, sans-serif' }}>{d.title}</p>
                   <p className="mt-1 text-sm text-gray-600">{d.desc}</p>
-                </div>
+                </CardTag>
               )
             })}
           </div>
         </div>
       </section>
+
+      {isPocVideoOpen && (
+        <div
+          className={`fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/75 px-4 py-8 backdrop-blur-sm transition-opacity duration-200 ease-out ${
+            isPocVideoVisible ? 'opacity-100' : 'opacity-0'
+          }`}
+          onClick={closePocVideo}
+        >
+          <div
+            className={`w-full max-w-5xl overflow-hidden rounded-2xl bg-black shadow-2xl transition-all duration-200 ease-out ${
+              isPocVideoVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+            }`}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-white/10 bg-slate-950 px-4 py-3">
+              <p className="text-sm font-bold text-white" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                {t('PoC Funcional', 'Functional PoC')}
+              </p>
+              <button
+                type="button"
+                onClick={closePocVideo}
+                className="rounded-lg px-3 py-1.5 text-sm font-semibold text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                {t('Cerrar', 'Close')}
+              </button>
+            </div>
+            <video
+              src={pocFunctionalVideo.src}
+              poster={pocFunctionalVideo.poster}
+              controls
+              autoPlay
+              className="aspect-video w-full bg-black object-contain"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Sección 5: De la idea a producción (pipeline) */}
       <section className="py-24" style={{ background: 'linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%)' }}>
