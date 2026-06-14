@@ -257,6 +257,7 @@ export interface ROIOracleResponse {
 export interface AnonymousGenerateRequest {
   prompt: string;
   language?: 'en' | 'es';
+  email?: string;
   template_id?: string;
   generation_mode?: 'auto' | 'app' | 'poc';
   vertical?: string;

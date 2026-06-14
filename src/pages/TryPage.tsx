@@ -16,9 +16,11 @@ const PROMPT_HARD_LIMIT = 4000
 const POLL_TIMEOUT_MS = 10 * 60 * 1000
 const MAX_POLL_FAILURES = 5
 const TRY_PAGE_STORAGE_KEY = 'try_page_state'
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 type PersistedTryState = {
   prompt?: string
+  email?: string
   anonSessionId?: string | null
   status?: AnonymousGenerateResponse['status'] | null
   templateId?: string | null
@@ -62,14 +64,6 @@ export default function TryPage() {
   })())
   const initialPersistedState = initialPersistedStateRef.current
 
-  // Auth guard: redirect to login if not authenticated
-  useEffect(() => {
-    if (!userData) {
-      saveAuthReturnUrl()
-      navigate('/login', { replace: true })
-    }
-  }, [userData, navigate])
-
   // Fetch billing status for PoC counter
   useEffect(() => {
     if (userData) {
@@ -82,6 +76,10 @@ export default function TryPage() {
       return initialPersistedState.prompt
     }
     return templateId ? t('try.templatePrompt', { templateId }) : ''
+  })
+  const [leadEmail, setLeadEmail] = useState(() => {
+    if (userData?.email) return userData.email
+    return initialPersistedState?.email ?? ''
   })
   const [isGenerating, setIsGenerating] = useState(
     () => initialPersistedState?.status === 'generating'
@@ -112,11 +110,12 @@ export default function TryPage() {
     writePersistedTryState({
       ...current,
       prompt,
+      email: userData?.email || leadEmail,
       templateId,
       ...patch,
       updatedAt: Date.now(),
     })
-  }, [prompt, templateId])
+  }, [leadEmail, prompt, templateId, userData?.email])
 
   const stopPolling = useCallback(() => {
     if (pollRef.current) {
@@ -134,6 +133,12 @@ export default function TryPage() {
   useEffect(() => {
     persistTryState({})
   }, [persistTryState])
+
+  useEffect(() => {
+    if (userData?.email) {
+      setLeadEmail(userData.email)
+    }
+  }, [userData?.email])
 
   useEffect(() => () => stopPolling(), [stopPolling])
 
@@ -296,6 +301,10 @@ export default function TryPage() {
       setError(t('try.maxChars', { max: String(PROMPT_HARD_LIMIT), count: String(prompt.length) }))
       return
     }
+    if (!userData && leadEmail.trim() && !EMAIL_RE.test(leadEmail.trim())) {
+      setError(t('try.invalidEmail'))
+      return
+    }
     setError('')
     // Opción B: si ya hay vertical persistida, saltamos el modal legacy.
     const persisted = readSelectedVertical()
@@ -307,7 +316,7 @@ export default function TryPage() {
     // runGenerationWithVertical se referencia por closure (está declarada más
     // abajo en el archivo; agregarla a deps dispararía TDZ). El lint del
     // proyecto no fuerza exhaustive-deps, así que no hace falta disable.
-  }, [prompt, t])
+  }, [leadEmail, prompt, t, userData])
 
   const runGenerationWithVertical = useCallback(async (vertical: SelectableVertical) => {
     setIsVerticalModalOpen(false)
@@ -323,6 +332,7 @@ export default function TryPage() {
       const res = await plgService.anonymousGenerate({
         prompt: prompt.trim(),
         language,
+        email: userData?.email || leadEmail.trim() || undefined,
         template_id: templateId || undefined,
         generation_mode: 'poc',
         vertical,
@@ -373,7 +383,7 @@ export default function TryPage() {
       }
       setError(detail)
     }
-  }, [persistTryState, prompt, startPolling, stopPolling, templateId, t])
+  }, [leadEmail, language, persistTryState, prompt, startPolling, stopPolling, templateId, t, userData?.email])
 
   const handleVerticalSelect = useCallback((vertical: SelectableVertical) => {
     void runGenerationWithVertical(vertical)
@@ -456,6 +466,23 @@ export default function TryPage() {
                     className="w-full bg-gray-50 border-none rounded-xl p-6 text-gray-900 focus:ring-2 focus:ring-indigo-500/20 placeholder:text-slate-400 resize-none text-lg leading-relaxed disabled:opacity-60"
                     style={{ fontFamily: 'Inter, sans-serif' }}
                   />
+                  {!userData && (
+                    <div className="mt-4">
+                      <label htmlFor="try-email" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                        {t('try.emailLabel')}
+                      </label>
+                      <input
+                        id="try-email"
+                        type="email"
+                        value={leadEmail}
+                        onChange={(event) => setLeadEmail(event.target.value)}
+                        placeholder={t('try.emailPlaceholder')}
+                        disabled={isGenerating}
+                        className="w-full rounded-xl border border-slate-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-60"
+                      />
+                      <p className="mt-1.5 text-xs text-slate-500">{t('try.emailHint')}</p>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between mt-3">
                     <div>
                       {isNearPromptLimit && (

@@ -206,12 +206,35 @@ export default function ValidationWizard() {
           {t('¡Recibimos tu pedido!', 'We got your request!')}
         </h3>
         <p className="mb-2 text-lg text-gray-700">
-          {t('En menos de 24 horas vas a recibir el acceso a tu PoC en:', 'In under 24 hours you will receive access to your PoC at:')}
+          {t(
+            'En menos de 24 horas vas a recibir el acceso a tu PoC funcional + tu Validation Package en:',
+            'In under 24 hours you will receive access to your working PoC + your Validation Package at:'
+          )}
         </p>
-        <p className="mb-6 inline-flex items-center gap-2 rounded-xl bg-indigo-50 px-4 py-2 text-base font-semibold text-indigo-700">
+        <p className="mb-5 inline-flex items-center gap-2 rounded-xl bg-indigo-50 px-4 py-2 text-base font-semibold text-indigo-700">
           <Mail className="h-4 w-4" />
           {form.email}
         </p>
+        <div className="mb-6 rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4 text-left">
+          <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-indigo-900">
+            <ShieldCheck className="h-4 w-4 text-indigo-600" />
+            {t('Tu Validation Package incluye:', 'Your Validation Package includes:')}
+          </p>
+          <ul className="space-y-1.5 text-sm text-gray-700">
+            <li className="flex items-start gap-2">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+              {t('PoC funcional lista para probar en vivo.', 'Working PoC ready to try live.')}
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+              {t('Análisis de viabilidad y casos de uso de IA.', 'Feasibility analysis and AI use cases.')}
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+              {t('Estimación de impacto y próximos pasos.', 'Impact estimate and next steps.')}
+            </li>
+          </ul>
+        </div>
         <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
           <Clock className="h-4 w-4" />
           {t('Revisá tu casilla (y spam) en las próximas 24 hs.', 'Check your inbox (and spam) within the next 24 hours.')}
@@ -318,7 +341,7 @@ export default function ValidationWizard() {
             icon={Mail}
             required
             error={errors.email}
-            hint={t('Acá te enviamos el link de acceso a tu PoC.', "We'll send your PoC access link here.")}
+            hint={t('Acá te enviamos el link de acceso a tu AI Validation Package.', "We'll send your AI Validation Package access link here.")}
           >
             <input
               type="email"
@@ -445,8 +468,8 @@ export default function ValidationWizard() {
             <Clock className="mt-0.5 h-5 w-5 shrink-0 text-indigo-600" />
             <p className="text-sm text-indigo-900">
               {t(
-                'Al enviar, en menos de 24 hs vas a recibir el acceso a tu PoC funcional en tu email. Sin costo.',
-                'Once you submit, you will receive access to your working PoC by email in under 24 hours. Free of charge.'
+                'Al enviar, en menos de 24 hs vas a recibir el acceso a tu AI Validation Package en tu email. Sin costo.',
+                'Once you submit, you will receive access to your AI Validation Package by email in under 24 hours. Free of charge.'
               )}
             </p>
           </div>
