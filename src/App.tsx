@@ -90,6 +90,7 @@ const AdminAnalyticsPage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminAnaly
 const AdminBillingPage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminBillingPage')) : () => null
 const AdminSalesAssistantPage = SALES_ENABLED ? lazy(() => import('./pages/AdminSalesAssistantPage')) : () => null
 const AdminPocSocialPage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminPocSocialPage')) : () => null
+const AdminMarketingInsightsPage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminMarketingInsightsPage')) : () => null
 
 // ─── AgenticRedirect (small, inline is fine) ────────────────────
 // Imported directly since OnboardingPage exports it as a named export.
@@ -261,6 +262,7 @@ function App() {
                 <Route path="/admin/vertical-packs" element={<FeatureGate feature="admin_advanced"><AdminRouteGuard><AdminVerticalPacksPage /></AdminRouteGuard></FeatureGate>} />
                 <Route path="/admin/marketplace" element={<FeatureGate feature="marketplace"><AdminRouteGuard><AdminMarketplacePage /></AdminRouteGuard></FeatureGate>} />
                 <Route path="/admin/poc-social" element={<FeatureGate feature="admin_advanced"><AdminRouteGuard><AdminPocSocialPage /></AdminRouteGuard></FeatureGate>} />
+                <Route path="/admin/marketing-insights" element={<FeatureGate feature="admin_advanced"><AdminRouteGuard><AdminMarketingInsightsPage /></AdminRouteGuard></FeatureGate>} />
                 <Route path="/admin/sales-assistant" element={<FeatureGate feature="sales_tools"><AdminRouteGuard><AdminSalesAssistantPage /></AdminRouteGuard></FeatureGate>} />
                 <Route path="/admin/patterns" element={<FeatureGate feature="admin_advanced"><AdminRouteGuard><AdminPatternsPage /></AdminRouteGuard></FeatureGate>} />
                 <Route path="/admin/spec-editor" element={<FeatureGate feature="admin_advanced"><AdminRouteGuard><AdminSpecEditorPage /></AdminRouteGuard></FeatureGate>} />

@@ -1,8 +1,8 @@
-import { LayoutDashboard, Users, FileCode, Package, Headphones, Brain, FileEdit, LogOut, Store, Building2, Activity, TrendingUp, CreditCard, FlaskConical, RefreshCw, Megaphone } from 'lucide-react'
+import { LayoutDashboard, Users, FileCode, Headphones, Brain, LogOut, Activity, TrendingUp, CreditCard, FlaskConical, RefreshCw, Megaphone, BarChart3 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 interface AdminSidebarProps {
-  currentPage: 'dashboard' | 'users' | 'organizations' | 'pocs' | 'vertical-packs' | 'marketplace' | 'poc-social' | 'sales-assistant' | 'patterns' | 'spec-editor' | 'training-agent' | 'system' | 'tenants' | 'analytics' | 'billing'
+  currentPage: 'dashboard' | 'users' | 'organizations' | 'pocs' | 'vertical-packs' | 'marketplace' | 'poc-social' | 'marketing-insights' | 'sales-assistant' | 'patterns' | 'spec-editor' | 'training-agent' | 'system' | 'tenants' | 'analytics' | 'billing'
   onLogout: () => void
 }
 
@@ -23,34 +23,22 @@ export default function AdminSidebar({ currentPage, onLogout }: AdminSidebarProp
       path: '/admin/users'
     },
     {
-      id: 'organizations',
-      label: 'Organizaciones',
-      icon: Building2,
-      path: '/admin/organizations'
-    },
-    {
       id: 'pocs',
       label: 'POCs Creadas',
       icon: FileCode,
       path: '/admin/pocs'
     },
     {
-      id: 'vertical-packs',
-      label: 'Vertical Packs',
-      icon: Package,
-      path: '/admin/vertical-packs'
-    },
-    {
-      id: 'marketplace',
-      label: 'Marketplace',
-      icon: Store,
-      path: '/admin/marketplace'
-    },
-    {
       id: 'poc-social',
       label: 'Marketing',
       icon: Megaphone,
       path: '/admin/poc-social'
+    },
+    {
+      id: 'marketing-insights',
+      label: 'Marketing Insights',
+      icon: BarChart3,
+      path: '/admin/marketing-insights'
     },
     {
       id: 'sales-assistant',
@@ -63,12 +51,6 @@ export default function AdminSidebar({ currentPage, onLogout }: AdminSidebarProp
       label: 'Pattern Memory',
       icon: Brain,
       path: '/admin/patterns'
-    },
-    {
-      id: 'spec-editor',
-      label: 'Spec Editor',
-      icon: FileEdit,
-      path: '/admin/spec-editor'
     },
     {
       id: 'training-agent',

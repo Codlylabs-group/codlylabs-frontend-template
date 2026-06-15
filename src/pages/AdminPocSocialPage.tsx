@@ -3,7 +3,7 @@ import {
   Linkedin, Twitter, Facebook, Instagram, Copy, Check, Send,
   Sparkles, RefreshCw, Image as ImageIcon, Link2, AlertCircle, CheckCircle2,
   Wand2, Download, TrendingUp, Search, Anchor, ExternalLink, Globe, Gauge,
-  Layers, FileText, Images,
+  Layers, FileText, Images, Film, Clapperboard,
 } from 'lucide-react'
 import AdminSidebar from '../components/AdminSidebar'
 import { api } from '../services/api'
@@ -126,6 +126,16 @@ export default function AdminPocSocialPage() {
   const [carouselLoading, setCarouselLoading] = useState<string | null>(null)
   const [carouselError, setCarouselError] = useState<Record<string, string>>({})
 
+  // Videos animados por red (placa creativa en movimiento)
+  const [videos, setVideos] = useState<Record<string, { video: string; poster: string }>>({})
+  const [videoLoading, setVideoLoading] = useState<string | null>(null)
+  const [videoError, setVideoError] = useState<Record<string, string>>({})
+
+  // Historias animadas por red (storytelling con personaje founder)
+  const [stories, setStories] = useState<Record<string, { video: string; poster: string }>>({})
+  const [storyLoading, setStoryLoading] = useState<string | null>(null)
+  const [storyError, setStoryError] = useState<Record<string, string>>({})
+
   const handleLogout = () => {
     localStorage.removeItem('adminToken')
     window.location.href = '/admin/login'
@@ -133,9 +143,35 @@ export default function AdminPocSocialPage() {
 
   useEffect(() => {
     handleLinkedInCallback()
+    handleMetaCallback()
     loadConnStatus()
     loadGrowthOptions()
   }, [])
+
+  const handleMetaCallback = async () => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('state') !== 'meta_connect') return
+    const code = params.get('code')
+    const url = new URL(window.location.href)
+    ;['code', 'state', 'error', 'error_description'].forEach(k => url.searchParams.delete(k))
+    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`)
+    if (!code) return
+    try {
+      await api.get('/api/v1/admin/poc-social/meta/callback', { params: { code, state: 'meta_connect' } })
+      await loadConnStatus()
+    } catch (e: any) {
+      alert(e?.response?.data?.detail || 'No se pudo completar la conexión de Meta.')
+    }
+  }
+
+  const connectMeta = async () => {
+    try {
+      const { data } = await api.get('/api/v1/admin/poc-social/meta/auth-url')
+      if (data.auth_url) window.location.href = data.auth_url
+    } catch (e: any) {
+      alert(e?.response?.data?.detail || 'Falta configurar META_APP_ID / META_APP_SECRET / META_OAUTH_REDIRECT_URI en el backend.')
+    }
+  }
 
   const cleanLinkedInQuery = () => {
     const url = new URL(window.location.href)
@@ -214,7 +250,7 @@ export default function AdminPocSocialPage() {
 
   // ── Generar ──────────────────────────────────────────────────────
   const generate = async () => {
-    setGenerating(true); setGenError(null); setPosts({}); setResults({}); setImages({}); setImgError({}); setResearch(null); setQuality({})
+    setGenerating(true); setGenError(null); setPosts({}); setResults({}); setImages({}); setImgError({}); setVideos({}); setVideoError({}); setStories({}); setStoryError({}); setResearch(null); setQuality({})
     try {
       const { data } = await api.post('/api/v1/admin/poc-social/growth/generate', {
         pillar, audience, topic: topic.trim() || null, research: useResearch, quality_pass: useQuality,
@@ -276,6 +312,7 @@ export default function AdminPocSocialPage() {
           image: images[net] || null,
           carousel: carouselSlides.length > 0 ? carouselSlides : null,
           carousel_pdf: carouselPdf,
+          pillar, audience,
         } },
       })
       const res: PublishResult | undefined = (data.results || [])[0]
@@ -330,12 +367,58 @@ export default function AdminPocSocialPage() {
     setCarouselError(prev => ({ ...prev, [net]: '' }))
     try {
       const { data } = await api.post('/api/v1/admin/poc-social/carousel/generate', {
-        post_text: p.text, network: net, audience, pillar, num_slides: 5,
+        post_text: p.text, network: net, audience, pillar, num_slides: 5, style: imageStyle,
       })
       setCarousels(prev => ({ ...prev, [net]: data }))
     } catch (e: any) {
       setCarouselError(prev => ({ ...prev, [net]: e?.response?.data?.detail || 'Error generando el carrusel.' }))
     } finally { setCarouselLoading(null) }
+  }
+
+  // ── Generar video animado de la placa ───────────────────────────
+  const generateVideo = async (net: string) => {
+    const p = posts[net]; if (!p) return
+    setVideoLoading(net)
+    setVideoError(prev => ({ ...prev, [net]: '' }))
+    try {
+      const { data } = await api.post('/api/v1/admin/poc-social/video/generate', {
+        prompt: p.image_idea || p.text.slice(0, 200),
+        network: net,
+        post_text: p.text,
+        audience,
+        pillar,
+        duration: 6,
+      })
+      if (data.video_data_url) {
+        setVideos(prev => ({ ...prev, [net]: { video: data.video_data_url, poster: data.poster_data_url || '' } }))
+      } else {
+        setVideoError(prev => ({ ...prev, [net]: 'No se devolvió el video.' }))
+      }
+    } catch (e: any) {
+      setVideoError(prev => ({ ...prev, [net]: e?.response?.data?.detail || 'Error generando el video.' }))
+    } finally { setVideoLoading(null) }
+  }
+
+  // ── Generar historia animada (storytelling) ─────────────────────
+  const generateStory = async (net: string) => {
+    const p = posts[net]; if (!p) return
+    setStoryLoading(net)
+    setStoryError(prev => ({ ...prev, [net]: '' }))
+    try {
+      const { data } = await api.post('/api/v1/admin/poc-social/story/generate', {
+        post_text: p.text,
+        network: net,
+        audience,
+        pillar,
+      })
+      if (data.video_data_url) {
+        setStories(prev => ({ ...prev, [net]: { video: data.video_data_url, poster: data.poster_data_url || '' } }))
+      } else {
+        setStoryError(prev => ({ ...prev, [net]: 'No se devolvió la historia.' }))
+      }
+    } catch (e: any) {
+      setStoryError(prev => ({ ...prev, [net]: e?.response?.data?.detail || 'Error generando la historia.' }))
+    } finally { setStoryLoading(null) }
   }
 
   const connectLinkedIn = async () => {
@@ -381,11 +464,18 @@ export default function AdminPocSocialPage() {
               </span>
             )
           })}
-          {!connStatus['linkedin'] && (
-            <button onClick={connectLinkedIn} className="ml-auto flex items-center gap-1.5 text-sm bg-[#0A66C2] text-white px-3 py-1.5 rounded-lg hover:opacity-90">
-              <Link2 size={14} /> Conectar LinkedIn
-            </button>
-          )}
+          <div className="ml-auto flex items-center gap-2">
+            {!connStatus['facebook'] && (
+              <button onClick={connectMeta} className="flex items-center gap-1.5 text-sm bg-[#1877F2] text-white px-3 py-1.5 rounded-lg hover:opacity-90">
+                <Link2 size={14} /> Conectar Facebook/IG
+              </button>
+            )}
+            {!connStatus['linkedin'] && (
+              <button onClick={connectLinkedIn} className="flex items-center gap-1.5 text-sm bg-[#0A66C2] text-white px-3 py-1.5 rounded-lg hover:opacity-90">
+                <Link2 size={14} /> Conectar LinkedIn
+              </button>
+            )}
+          </div>
           {linkedinNotice && (
             <span className="basis-full text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
               {linkedinNotice}
@@ -634,6 +724,68 @@ export default function AdminPocSocialPage() {
                           </button>
                         )}
                         {imgError[n.id] && <p className="text-xs text-red-600 mt-1">{imgError[n.id]}</p>}
+                      </div>
+
+                      {/* Video animado de la placa creativa */}
+                      <div className="mt-3 border-t border-gray-100 pt-3">
+                        {videos[n.id] ? (
+                          <div className="space-y-2">
+                            <video
+                              src={videos[n.id].video}
+                              poster={videos[n.id].poster || undefined}
+                              autoPlay muted loop playsInline controls
+                              className="w-full rounded-lg border border-gray-200 bg-black"
+                            />
+                            <div className="flex gap-2">
+                              <a href={videos[n.id].video} download={`codlylabs-${n.id}.mp4`}
+                                className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg px-2 py-1">
+                                <Download size={13} /> Descargar MP4
+                              </a>
+                              <button onClick={() => generateVideo(n.id)} disabled={videoLoading === n.id}
+                                className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg px-2 py-1">
+                                <RefreshCw size={13} className={videoLoading === n.id ? 'animate-spin' : ''} /> Regenerar
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button onClick={() => generateVideo(n.id)} disabled={videoLoading === n.id}
+                            className="flex items-center gap-1.5 text-sm text-brand-600 border border-brand-200 bg-brand-50 rounded-lg px-3 py-1.5 hover:bg-brand-100 disabled:opacity-50">
+                            <Film size={14} className={videoLoading === n.id ? 'animate-pulse' : ''} />
+                            {videoLoading === n.id ? 'Generando video… (~15-30 s)' : 'Generar video'}
+                          </button>
+                        )}
+                        {videoError[n.id] && <p className="text-xs text-red-600 mt-1">{videoError[n.id]}</p>}
+                      </div>
+
+                      {/* Historia animada (storytelling con personaje) */}
+                      <div className="mt-3 border-t border-gray-100 pt-3">
+                        {stories[n.id] ? (
+                          <div className="space-y-2">
+                            <video
+                              src={stories[n.id].video}
+                              poster={stories[n.id].poster || undefined}
+                              autoPlay muted loop playsInline controls
+                              className="w-full rounded-lg border border-gray-200 bg-black"
+                            />
+                            <div className="flex gap-2">
+                              <a href={stories[n.id].video} download={`codlylabs-historia-${n.id}.mp4`}
+                                className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg px-2 py-1">
+                                <Download size={13} /> Descargar MP4
+                              </a>
+                              <button onClick={() => generateStory(n.id)} disabled={storyLoading === n.id}
+                                className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg px-2 py-1">
+                                <RefreshCw size={13} className={storyLoading === n.id ? 'animate-spin' : ''} /> Regenerar
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button onClick={() => generateStory(n.id)} disabled={storyLoading === n.id}
+                            className="flex items-center gap-1.5 text-sm text-brand-600 border border-brand-200 bg-brand-50 rounded-lg px-3 py-1.5 hover:bg-brand-100 disabled:opacity-50">
+                            <Clapperboard size={14} className={storyLoading === n.id ? 'animate-pulse' : ''} />
+                            {storyLoading === n.id ? 'Generando historia… (~30-45 s)' : 'Generar historia'}
+                          </button>
+                        )}
+                        {storyError[n.id] && <p className="text-xs text-red-600 mt-1">{storyError[n.id]}</p>}
                       </div>
 
                       {/* Carrusel (LinkedIn / Instagram) */}
