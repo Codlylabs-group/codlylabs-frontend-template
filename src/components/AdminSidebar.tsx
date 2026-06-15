@@ -1,8 +1,8 @@
-import { LayoutDashboard, Users, FileCode, Headphones, Brain, LogOut, Activity, TrendingUp, CreditCard, FlaskConical, RefreshCw, Megaphone, BarChart3 } from 'lucide-react'
+import { LayoutDashboard, Users, Headphones, LogOut, Activity, TrendingUp, CreditCard, FlaskConical, Megaphone, BarChart3, Newspaper } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 interface AdminSidebarProps {
-  currentPage: 'dashboard' | 'users' | 'organizations' | 'pocs' | 'vertical-packs' | 'marketplace' | 'poc-social' | 'marketing-insights' | 'sales-assistant' | 'patterns' | 'spec-editor' | 'training-agent' | 'system' | 'tenants' | 'analytics' | 'billing'
+  currentPage: 'dashboard' | 'users' | 'organizations' | 'pocs' | 'vertical-packs' | 'marketplace' | 'poc-social' | 'marketing-insights' | 'pulse' | 'sales-assistant' | 'patterns' | 'spec-editor' | 'training-agent' | 'system' | 'tenants' | 'analytics' | 'billing'
   onLogout: () => void
 }
 
@@ -23,12 +23,6 @@ export default function AdminSidebar({ currentPage, onLogout }: AdminSidebarProp
       path: '/admin/users'
     },
     {
-      id: 'pocs',
-      label: 'POCs Creadas',
-      icon: FileCode,
-      path: '/admin/pocs'
-    },
-    {
       id: 'poc-social',
       label: 'Marketing',
       icon: Megaphone,
@@ -41,16 +35,16 @@ export default function AdminSidebar({ currentPage, onLogout }: AdminSidebarProp
       path: '/admin/marketing-insights'
     },
     {
+      id: 'pulse',
+      label: 'Novedades',
+      icon: Newspaper,
+      path: '/admin/pulse'
+    },
+    {
       id: 'sales-assistant',
       label: 'Sales Copilot',
       icon: Headphones,
       path: '/admin/sales-assistant'
-    },
-    {
-      id: 'patterns',
-      label: 'Pattern Memory',
-      icon: Brain,
-      path: '/admin/patterns'
     },
     {
       id: 'training-agent',
@@ -75,12 +69,6 @@ export default function AdminSidebar({ currentPage, onLogout }: AdminSidebarProp
       label: 'Sistema',
       icon: Activity,
       path: '/admin/system'
-    },
-    {
-      id: 'tenants',
-      label: 'Tenants',
-      icon: RefreshCw,
-      path: '/admin/tenants'
     }
   ]
 
