@@ -26,7 +26,7 @@ import {
   Search,
   UserCheck,
   Box,
-  Compass,
+  Download,
   PlayCircle,
 } from 'lucide-react'
 import Footer from '../components/landing/Footer'
@@ -202,7 +202,7 @@ export default function HomePage() {
     { icon: CheckCircle2, label: t('Iniciativa de IA validada', 'Validated AI initiative') },
     { icon: Box, label: t('Prueba de concepto funcional', 'Functional proof of concept') },
     { icon: MapIcon, label: t('Roadmap a producción', 'Production roadmap') },
-    { icon: Compass, label: t('Recomendación clara', 'Clear recommendation') },
+    { icon: Download, label: t('Descarga el zip con todo el proyecto', 'Download the zip with the whole project') },
   ]
 
   return (
