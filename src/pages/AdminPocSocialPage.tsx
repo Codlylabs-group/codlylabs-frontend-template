@@ -93,7 +93,7 @@ export default function AdminPocSocialPage() {
   const [topic, setTopic] = useState('')
   const [useResearch, setUseResearch] = useState(true)
   const [useQuality, setUseQuality] = useState(true)
-  const [imageStyle, setImageStyle] = useState<'branded' | 'creative'>('branded')
+  const [imageStyle, setImageStyle] = useState<'art' | 'branded' | 'creative'>('art')
   const [imageMood, setImageMood] = useState<'auto' | 'profesional' | 'casual' | 'wow'>('auto')
 
   // Temas en tendencia (research por pilar + audiencia)
@@ -583,18 +583,24 @@ export default function AdminPocSocialPage() {
               <span className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
                 <ImageIcon size={14} className="text-brand-600" /> Estilo de imagen
               </span>
-              <div className="mt-2 grid grid-cols-2 gap-1 bg-gray-100 rounded-lg p-1">
+              <div className="mt-2 grid grid-cols-3 gap-1 bg-gray-100 rounded-lg p-1">
+                <button onClick={() => setImageStyle('art')}
+                  className={`text-xs py-1.5 rounded-md transition-colors ${imageStyle === 'art' ? 'bg-white text-brand-700 font-semibold shadow-sm' : 'text-gray-500'}`}>
+                  Arte IA
+                </button>
                 <button onClick={() => setImageStyle('branded')}
                   className={`text-xs py-1.5 rounded-md transition-colors ${imageStyle === 'branded' ? 'bg-white text-brand-700 font-semibold shadow-sm' : 'text-gray-500'}`}>
-                  Diseño branded
+                  Branded
                 </button>
                 <button onClick={() => setImageStyle('creative')}
                   className={`text-xs py-1.5 rounded-md transition-colors ${imageStyle === 'creative' ? 'bg-white text-brand-700 font-semibold shadow-sm' : 'text-gray-500'}`}>
-                  Creativo (libre)
+                  Creativo
                 </button>
               </div>
               <p className="text-xs text-gray-500 mt-1.5">
-                {imageStyle === 'branded'
+                {imageStyle === 'art'
+                  ? 'Arte IA: fondo artístico que rota estilo, medio y paleta en cada generación (nunca el mismo look), con titular y marca nítidos compuestos encima.'
+                  : imageStyle === 'branded'
                   ? 'Placa de marca: colores, logo y texto de CodlyLabs siempre correctos.'
                   : 'Diseño libre: el agente elige una paleta espectacular para el post (sin atarse a la marca). Siempre vectorial, sin fotos.'}
               </p>

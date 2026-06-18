@@ -1,8 +1,8 @@
-import { LayoutDashboard, Users, Headphones, LogOut, Activity, TrendingUp, CreditCard, FlaskConical, Megaphone, BarChart3, Newspaper } from 'lucide-react'
+import { LayoutDashboard, Users, Headphones, LogOut, Activity, TrendingUp, CreditCard, FlaskConical, Megaphone, BarChart3, Newspaper, Rocket } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 interface AdminSidebarProps {
-  currentPage: 'dashboard' | 'users' | 'organizations' | 'pocs' | 'vertical-packs' | 'marketplace' | 'poc-social' | 'marketing-insights' | 'pulse' | 'sales-assistant' | 'patterns' | 'spec-editor' | 'training-agent' | 'system' | 'tenants' | 'analytics' | 'billing'
+  currentPage: 'dashboard' | 'users' | 'organizations' | 'pocs' | 'vertical-packs' | 'marketplace' | 'poc-social' | 'marketing-insights' | 'pulse' | 'sales-assistant' | 'patterns' | 'spec-editor' | 'training-agent' | 'system' | 'deploy' | 'tenants' | 'analytics' | 'billing'
   onLogout: () => void
 }
 
@@ -69,6 +69,12 @@ export default function AdminSidebar({ currentPage, onLogout }: AdminSidebarProp
       label: 'Sistema',
       icon: Activity,
       path: '/admin/system'
+    },
+    {
+      id: 'deploy',
+      label: 'Deployments',
+      icon: Rocket,
+      path: '/admin/deploy'
     }
   ]
 
