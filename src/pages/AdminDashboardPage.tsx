@@ -8,8 +8,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
-  Cell
+  ResponsiveContainer
 } from 'recharts'
 import { api } from '../services/api'
 import { useAppSelector, useAppDispatch } from '../store/hooks'
@@ -33,11 +32,15 @@ interface AdminStats {
   timestamp: string
 }
 
+type VisitsPeriod = 'day' | 'week' | 'month'
+
 interface PageStats {
-  home_visits: number
-  unique_sessions: number
-  top_pages: Array<{ path: string; views: number }>
+  period: VisitsPeriod
   period_days: number
+  unique_visits: number
+  total_views: number
+  visits_by_day: Array<{ date: string; visits: number }>
+  dedup_basis?: string
 }
 
 interface PipelineTtfpStats {
@@ -220,6 +223,8 @@ export default function AdminDashboardPage() {
 
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [pageStats, setPageStats] = useState<PageStats | null>(null)
+  const [visitsPeriod, setVisitsPeriod] = useState<VisitsPeriod>('week')
+  const [visitsLoading, setVisitsLoading] = useState(false)
   const [pipelineDashboard, setPipelineDashboard] = useState<PipelineDashboardResponse | null>(null)
   const [pipelineIncidents, setPipelineIncidents] = useState<PipelineIncidentsResponse | null>(null)
   const [phase1Status, setPhase1Status] = useState<Phase1StatusResponse | null>(null)
@@ -330,6 +335,24 @@ export default function AdminDashboardPage() {
     }
   }, [pageStats])
 
+  const loadPageStats = async (period: VisitsPeriod) => {
+    setVisitsLoading(true)
+    try {
+      const res = await api.get(`/api/v1/analytics/stats/pages?period=${period}`)
+      setPageStats(res.data)
+    } catch (err: any) {
+      // Mantener los datos previos si la recarga del período falla.
+    } finally {
+      setVisitsLoading(false)
+    }
+  }
+
+  const handleVisitsPeriodChange = (period: VisitsPeriod) => {
+    if (period === visitsPeriod) return
+    setVisitsPeriod(period)
+    loadPageStats(period)
+  }
+
   const loadAdminData = async () => {
     setIsLoading(true)
     setError('')
@@ -338,7 +361,7 @@ export default function AdminDashboardPage() {
     try {
       const results = await Promise.allSettled([
         api.get('/api/v1/admin/stats'),
-        api.get('/api/v1/analytics/stats/pages?days=30'),
+        api.get(`/api/v1/analytics/stats/pages?period=${visitsPeriod}`),
         api.get(`/api/v1/analytics/pipeline/dashboard?hours=${pipelineHours}`),
         api.get(`/api/v1/analytics/pipeline/incidents?hours=${incidentHours}`),
         api.get('/api/v1/analytics/pipeline/phase1-status?baseline_hours=72&current_hours=72'),
@@ -1487,46 +1510,67 @@ export default function AdminDashboardPage() {
         {/* Page Analytics */}
         {!isLoading && pageStats && (
           <div className="mt-8 bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Páginas Más Visitadas (últimos {pageStats.period_days} días)
-            </h2>
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Visitas a la Landing
+              </h2>
+              {/* Period Filter */}
+              <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1">
+                {([
+                  { key: 'day', label: 'Día' },
+                  { key: 'week', label: 'Semana' },
+                  { key: 'month', label: 'Mes' },
+                ] as Array<{ key: VisitsPeriod; label: string }>).map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => handleVisitsPeriodChange(key)}
+                    disabled={visitsLoading}
+                    className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors disabled:opacity-50 ${
+                      visitsPeriod === key
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {/* Summary Stats */}
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div className="p-4 bg-blue-50 rounded-lg">
-                <div className="text-sm text-gray-600">Visitas al Home</div>
-                <div className="text-2xl font-bold text-blue-600">{pageStats.home_visits.toLocaleString()}</div>
+                <div className="text-sm text-gray-600">Visitas únicas</div>
+                <div className="text-2xl font-bold text-blue-600">{pageStats.unique_visits.toLocaleString()}</div>
+                <div className="text-xs text-gray-400 mt-1">misma IP/día cuenta una vez</div>
               </div>
               <div className="p-4 bg-green-50 rounded-lg">
-                <div className="text-sm text-gray-600">Sesiones Únicas</div>
-                <div className="text-2xl font-bold text-green-600">{pageStats.unique_sessions.toLocaleString()}</div>
+                <div className="text-sm text-gray-600">Vistas totales</div>
+                <div className="text-2xl font-bold text-green-600">{pageStats.total_views.toLocaleString()}</div>
+                <div className="text-xs text-gray-400 mt-1">incluye recargas y revisitas</div>
               </div>
             </div>
 
-            {/* Top Pages Bar Chart */}
-            {pageStats.top_pages.length > 0 ? (
+            {/* Visits per day Bar Chart */}
+            {pageStats.visits_by_day.length > 0 ? (
               <div className="h-[400px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={pageStats.top_pages}
+                    data={pageStats.visits_by_day}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="path" tick={{ fontSize: 12 }} interval={0} angle={-45} textAnchor="end" height={60} />
-                    <YAxis />
+                    <XAxis dataKey="date" tick={{ fontSize: 12 }} interval={0} angle={-45} textAnchor="end" height={60} />
+                    <YAxis allowDecimals={false} />
                     <Tooltip
-                      formatter={(value: any) => [`${value} visitas`, 'Visitas'] as [string, string]}
+                      formatter={(value: any) => [`${value} visitas`, 'Visitas únicas'] as [string, string]}
                       contentStyle={{
                         borderRadius: '8px',
                         border: 'none',
                         boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
                       }}
                     />
-                    <Bar dataKey="views" radius={[4, 4, 0, 0]}>
-                      {pageStats.top_pages.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={index < 3 ? '#2563eb' : '#93c5fd'} />
-                      ))}
-                    </Bar>
+                    <Bar dataKey="visits" radius={[4, 4, 0, 0]} fill="#2563eb" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
