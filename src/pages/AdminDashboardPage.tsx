@@ -396,12 +396,10 @@ export default function AdminDashboardPage() {
         llmBreakdownResult,
       ] = results
 
-      const authFailure = results.find(
-        (result) =>
-          result.status === 'rejected' &&
-          [401, 403].includes(result.reason?.response?.status),
-      )
-      if (authFailure) {
+      const statsAuthFailure =
+        statsResult.status === 'rejected' &&
+        [401, 403].includes(statsResult.reason?.response?.status)
+      if (statsAuthFailure) {
         dispatch(clearAuth())
         navigate('/admin/login')
         return

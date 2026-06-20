@@ -118,14 +118,19 @@ api.interceptors.response.use(
       requestUrl.includes('/api/v1/auth/linkedin/') ||
       requestUrl.includes('/api/v1/auth/google/')
 
-    // Admin endpoints use a separate auth system — never enter the
-    // user token-refresh flow, and redirect to /admin/login on 401.
+    // Admin endpoints use a separate auth system; never enter the user
+    // token-refresh flow from an admin surface. Only critical admin auth
+    // checks should force a redirect, because optional admin widgets can
+    // legitimately be unavailable in some environments.
     const isAdminEndpoint =
       requestUrl.includes('/api/v1/admin/') ||
       requestUrl.includes('/api/v1/poc-preview/system-summary') ||
       requestUrl.includes('/api/v1/poc-preview/resources') ||
       requestUrl.includes('/api/v1/poc-preview/queue-stats') ||
       requestUrl.includes('/api/v1/billing/admin/')
+    const isCriticalAdminAuthEndpoint =
+      requestUrl.includes('/api/v1/admin/auth/') ||
+      requestUrl.includes('/api/v1/admin/stats')
 
     const isExpectedAnonymousLinkMiss =
       status === 404 && requestUrl.includes('/api/v1/plg/link-session')
@@ -136,7 +141,7 @@ api.interceptors.response.use(
       typeof window !== 'undefined' &&
       (window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/review/pocs/'))
 
-    if (status === 401 && (isAdminEndpoint || isOnAdminPage)) {
+    if (status === 401 && isOnAdminPage && isCriticalAdminAuthEndpoint) {
       if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/admin/login')) {
         window.localStorage.removeItem(ACCESS_TOKEN_KEY)
         window.localStorage.removeItem(REFRESH_TOKEN_KEY)
@@ -145,6 +150,10 @@ api.interceptors.response.use(
         const currentPath = window.location.pathname + window.location.search
         window.location.href = `/admin/login?returnTo=${encodeURIComponent(currentPath)}`
       }
+      return Promise.reject(error)
+    }
+
+    if (status === 401 && (isAdminEndpoint || isOnAdminPage)) {
       return Promise.reject(error)
     }
 
