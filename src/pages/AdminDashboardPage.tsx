@@ -307,6 +307,15 @@ export default function AdminDashboardPage() {
     return Number.isInteger(value) ? value.toLocaleString() : value.toFixed(2)
   }
 
+  const finiteNumber = (value: unknown, fallback = 0) => {
+    const numeric = typeof value === 'number' ? value : Number(value)
+    return Number.isFinite(numeric) ? numeric : fallback
+  }
+
+  const formatInteger = (value: unknown) => Math.round(finiteNumber(value)).toLocaleString()
+  const formatDecimal = (value: unknown, digits = 2) => finiteNumber(value).toFixed(digits)
+  const formatMoney = (value: unknown, digits = 2) => `$${formatDecimal(value, digits)}`
+
   useEffect(() => {
     if (!userData) {
       navigate('/admin/login')
@@ -386,6 +395,17 @@ export default function AdminDashboardPage() {
         billingOverviewResult,
         llmBreakdownResult,
       ] = results
+
+      const authFailure = results.find(
+        (result) =>
+          result.status === 'rejected' &&
+          [401, 403].includes(result.reason?.response?.status),
+      )
+      if (authFailure) {
+        dispatch(clearAuth())
+        navigate('/admin/login')
+        return
+      }
       let nextError = ''
 
       if (statsResult.status === 'fulfilled') {
@@ -1006,20 +1026,20 @@ export default function AdminDashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
               <MetricCard
                 title="Gasto real (todos los calls)"
-                value={`$${(llmUsage.real_cost_usd ?? 0).toFixed(4)}`}
-                hint={`${(llmUsage.real_total_calls ?? 0)} llamadas · ${((llmUsage.real_total_tokens ?? 0) / 1000).toFixed(1)}K tokens`}
+                value={formatMoney(llmUsage.real_cost_usd, 4)}
+                hint={`${formatInteger(llmUsage.real_total_calls)} llamadas · ${formatDecimal(finiteNumber(llmUsage.real_total_tokens) / 1000, 1)}K tokens`}
                 good={null}
               />
               <MetricCard
                 title="Budget total asignado"
-                value={`$${llmUsage.total_budget_usd.toFixed(0)}`}
+                value={formatMoney(llmUsage.total_budget_usd, 0)}
                 hint={`${llmUsage.total_organizations} organizaciones`}
                 good={null}
               />
               <MetricCard
                 title="Gasto atribuido a orgs"
-                value={`$${llmUsage.total_spent_usd.toFixed(2)}`}
-                hint={`de $${llmUsage.total_budget_usd.toFixed(0)} asignados`}
+                value={formatMoney(llmUsage.total_spent_usd, 2)}
+                hint={`de ${formatMoney(llmUsage.total_budget_usd, 0)} asignados`}
                 good={llmUsage.platform_usage_percentage < 80}
               />
               <MetricCard
@@ -1043,7 +1063,7 @@ export default function AdminDashboardPage() {
                     <div key={plan} className="p-3 border border-gray-200 rounded-lg">
                       <div className="text-xs text-gray-500 uppercase tracking-wide">{plan}</div>
                       <div className="text-lg font-semibold text-gray-900 mt-1">
-                        ${data.total_spent.toFixed(2)}
+                        {formatMoney(data?.total_spent, 2)}
                       </div>
                       <div className="text-xs text-gray-500">
                         {data.count} org{data.count !== 1 ? 's' : ''} · {planPct}% usado
@@ -1081,9 +1101,9 @@ export default function AdminDashboardPage() {
                               {org.plan}
                             </span>
                           </td>
-                          <td className="py-2.5 px-4 text-right text-gray-700">${org.budget_usd.toFixed(0)}</td>
-                          <td className="py-2.5 px-4 text-right text-gray-700">${org.spent_usd.toFixed(2)}</td>
-                          <td className="py-2.5 px-4 text-right text-gray-700">${org.remaining_usd.toFixed(2)}</td>
+                          <td className="py-2.5 px-4 text-right text-gray-700">{formatMoney(org.budget_usd, 0)}</td>
+                          <td className="py-2.5 px-4 text-right text-gray-700">{formatMoney(org.spent_usd, 2)}</td>
+                          <td className="py-2.5 px-4 text-right text-gray-700">{formatMoney(org.remaining_usd, 2)}</td>
                           <td className="py-2.5 px-4 w-40">
                             <div className="flex items-center gap-2">
                               <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -1095,13 +1115,13 @@ export default function AdminDashboardPage() {
                                         ? 'bg-amber-500'
                                         : 'bg-emerald-500'
                                   }`}
-                                  style={{ width: `${Math.min(org.usage_percentage, 100)}%` }}
+                                  style={{ width: `${Math.min(finiteNumber(org.usage_percentage), 100)}%` }}
                                 />
                               </div>
                               <span className={`text-xs font-medium min-w-[40px] text-right ${
-                                org.usage_percentage >= 80 ? 'text-red-600' : 'text-gray-600'
+                                finiteNumber(org.usage_percentage) >= 80 ? 'text-red-600' : 'text-gray-600'
                               }`}>
-                                {org.usage_percentage.toFixed(0)}%
+                                {formatDecimal(org.usage_percentage, 0)}%
                               </span>
                             </div>
                           </td>
@@ -1123,7 +1143,7 @@ export default function AdminDashboardPage() {
                       {llmUsage.alerts.length} organización{llmUsage.alerts.length !== 1 ? 'es' : ''} cerca del límite de presupuesto
                     </div>
                     <div className="text-xs text-amber-700 mt-1">
-                      {llmUsage.alerts.map((a) => `${a.org_name} (${a.usage_percentage.toFixed(0)}%, plan ${a.plan})`).join(' · ')}
+                      {llmUsage.alerts.map((a) => `${a.org_name} (${formatDecimal(a.usage_percentage, 0)}%, plan ${a.plan})`).join(' · ')}
                     </div>
                   </div>
                 </div>
@@ -1139,7 +1159,7 @@ export default function AdminDashboardPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                   <MetricCard
                     title="Total Llamadas"
-                    value={`${(llmBreakdown.total_calls ?? 0).toLocaleString()}`}
+                    value={formatInteger(llmBreakdown.total_calls)}
                     hint={`${(llmBreakdown.by_model?.length ?? 0)} modelos usados`}
                     good={null}
                   />
@@ -1183,10 +1203,10 @@ export default function AdminDashboardPage() {
                               m.provider === 'openai' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
                             }`}>{m.provider}</span>
                           </td>
-                          <td className="py-2.5 px-4 text-right text-gray-700">{m.calls.toLocaleString()}</td>
-                          <td className="py-2.5 px-4 text-right text-gray-700">{m.input_tokens.toLocaleString()}</td>
-                          <td className="py-2.5 px-4 text-right text-gray-700">{m.output_tokens.toLocaleString()}</td>
-                          <td className="py-2.5 px-4 text-right font-medium text-gray-900">${m.cost_usd.toFixed(4)}</td>
+                          <td className="py-2.5 px-4 text-right text-gray-700">{formatInteger(m.calls)}</td>
+                          <td className="py-2.5 px-4 text-right text-gray-700">{formatInteger(m.input_tokens)}</td>
+                          <td className="py-2.5 px-4 text-right text-gray-700">{formatInteger(m.output_tokens)}</td>
+                          <td className="py-2.5 px-4 text-right font-medium text-gray-900">{formatMoney(m.cost_usd, 4)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1199,9 +1219,9 @@ export default function AdminDashboardPage() {
                     {llmBreakdown.by_provider.map((p: any) => (
                       <div key={p.provider} className="p-3 border border-gray-200 rounded-lg">
                         <div className="text-xs text-gray-500 uppercase tracking-wide">{p.provider}</div>
-                        <div className="text-lg font-semibold text-gray-900 mt-1">${p.cost_usd.toFixed(4)}</div>
+                        <div className="text-lg font-semibold text-gray-900 mt-1">{formatMoney(p.cost_usd, 4)}</div>
                         <div className="text-xs text-gray-500">
-                          {p.calls} llamadas · {((p.input_tokens + p.output_tokens) / 1000).toFixed(1)}K tokens
+                          {formatInteger(p.calls)} llamadas · {formatDecimal((finiteNumber(p.input_tokens) + finiteNumber(p.output_tokens)) / 1000, 1)}K tokens
                         </div>
                       </div>
                     ))}
@@ -1240,9 +1260,9 @@ export default function AdminDashboardPage() {
                                   'bg-gray-100 text-gray-600'
                                 }`}>{c.source || 'unknown'}</span>
                               </td>
-                              <td className="py-1.5 px-3 text-right text-gray-700">{c.input_tokens.toLocaleString()}</td>
-                              <td className="py-1.5 px-3 text-right text-gray-700">{c.output_tokens.toLocaleString()}</td>
-                              <td className="py-1.5 px-3 text-right text-gray-900">${c.cost_usd.toFixed(6)}</td>
+                              <td className="py-1.5 px-3 text-right text-gray-700">{formatInteger(c.input_tokens)}</td>
+                              <td className="py-1.5 px-3 text-right text-gray-700">{formatInteger(c.output_tokens)}</td>
+                              <td className="py-1.5 px-3 text-right text-gray-900">{formatMoney(c.cost_usd, 6)}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -1434,11 +1454,11 @@ export default function AdminDashboardPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <div className="bg-emerald-50 rounded-lg p-4">
                 <p className="text-xs text-emerald-700">MRR</p>
-                <p className="text-2xl font-bold text-emerald-900">${(billingOverview.mrr_usd ?? 0).toLocaleString()}</p>
+                <p className="text-2xl font-bold text-emerald-900">${formatInteger(billingOverview.mrr_usd)}</p>
               </div>
               <div className="bg-emerald-50 rounded-lg p-4">
                 <p className="text-xs text-emerald-700">ARR</p>
-                <p className="text-2xl font-bold text-emerald-900">${(billingOverview.arr_usd ?? 0).toLocaleString()}</p>
+                <p className="text-2xl font-bold text-emerald-900">${formatInteger(billingOverview.arr_usd)}</p>
               </div>
               <div className="bg-blue-50 rounded-lg p-4">
                 <p className="text-xs text-blue-700">Active Subscribers</p>
@@ -1541,12 +1561,12 @@ export default function AdminDashboardPage() {
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div className="p-4 bg-blue-50 rounded-lg">
                 <div className="text-sm text-gray-600">Visitas únicas</div>
-                <div className="text-2xl font-bold text-blue-600">{pageStats.unique_visits.toLocaleString()}</div>
+                <div className="text-2xl font-bold text-blue-600">{formatInteger(pageStats.unique_visits)}</div>
                 <div className="text-xs text-gray-400 mt-1">misma IP/día cuenta una vez</div>
               </div>
               <div className="p-4 bg-green-50 rounded-lg">
                 <div className="text-sm text-gray-600">Vistas totales</div>
-                <div className="text-2xl font-bold text-green-600">{pageStats.total_views.toLocaleString()}</div>
+                <div className="text-2xl font-bold text-green-600">{formatInteger(pageStats.total_views)}</div>
                 <div className="text-xs text-gray-400 mt-1">incluye recargas y revisitas</div>
               </div>
             </div>

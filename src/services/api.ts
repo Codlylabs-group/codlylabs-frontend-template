@@ -120,7 +120,12 @@ api.interceptors.response.use(
 
     // Admin endpoints use a separate auth system — never enter the
     // user token-refresh flow, and redirect to /admin/login on 401.
-    const isAdminEndpoint = requestUrl.includes('/api/v1/admin/')
+    const isAdminEndpoint =
+      requestUrl.includes('/api/v1/admin/') ||
+      requestUrl.includes('/api/v1/poc-preview/system-summary') ||
+      requestUrl.includes('/api/v1/poc-preview/resources') ||
+      requestUrl.includes('/api/v1/poc-preview/queue-stats') ||
+      requestUrl.includes('/api/v1/billing/admin/')
 
     const isExpectedAnonymousLinkMiss =
       status === 404 && requestUrl.includes('/api/v1/plg/link-session')
@@ -132,6 +137,14 @@ api.interceptors.response.use(
       (window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/review/pocs/'))
 
     if (status === 401 && (isAdminEndpoint || isOnAdminPage)) {
+      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/admin/login')) {
+        window.localStorage.removeItem(ACCESS_TOKEN_KEY)
+        window.localStorage.removeItem(REFRESH_TOKEN_KEY)
+        window.localStorage.removeItem(USER_DATA_KEY)
+        if (_onForceLogout) _onForceLogout()
+        const currentPath = window.location.pathname + window.location.search
+        window.location.href = `/admin/login?returnTo=${encodeURIComponent(currentPath)}`
+      }
       return Promise.reject(error)
     }
 
