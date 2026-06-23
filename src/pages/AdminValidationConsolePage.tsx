@@ -65,15 +65,12 @@ export default function AdminValidationConsolePage() {
   const handleLogout = () => { dispatch(clearAuth()); navigate('/admin/login') }
 
   const review = async (req: ValidationRequest, action: 'approve' | 'reject') => {
-    if (!req.review_token) return
+    if (!req.anon_session_id) return
     const verb = action === 'approve' ? 'aprobar y enviar el email a' : 'rechazar (no se envía email) a'
     if (!window.confirm(`¿Vas a ${verb} ${req.contact_email || req.company_name || 'este pedido'}?`)) return
     setBusyAnon(req.anon_session_id)
     try {
-      const fd = new FormData()
-      fd.append('token', req.review_token)
-      fd.append('action', action)
-      await api.post('/api/v1/plg/validation-review', fd)
+      await api.post(`/api/v1/plg/admin/validation-requests/${encodeURIComponent(req.anon_session_id)}/review`, { action })
       await loadData()
     } catch (err: any) {
       setError(err.response?.data?.detail || 'No se pudo registrar la revisión')
@@ -184,11 +181,13 @@ export default function AdminValidationConsolePage() {
                         <td className="px-4 py-3 whitespace-nowrap">
                           {busy ? (
                             <span className="text-gray-400">Procesando…</span>
-                          ) : req.can_review && req.review_token ? (
+                          ) : req.can_review ? (
                             <div className="flex items-center gap-3">
-                              <button onClick={() => navigate(`/review/pocs/${encodeURIComponent(req.review_token!)}`)} className="inline-flex items-center gap-1 text-blue-600 font-semibold hover:underline">
-                                <Wrench className="w-3.5 h-3.5" /> Arreglar
-                              </button>
+                              {req.review_token && (
+                                <button onClick={() => navigate(`/review/pocs/${encodeURIComponent(req.review_token!)}`)} className="inline-flex items-center gap-1 text-blue-600 font-semibold hover:underline">
+                                  <Wrench className="w-3.5 h-3.5" /> Arreglar
+                                </button>
+                              )}
                               <button onClick={() => review(req, 'approve')} className="inline-flex items-center gap-1 text-green-600 font-semibold hover:underline">
                                 <Check className="w-3.5 h-3.5" /> Aprobar
                               </button>
