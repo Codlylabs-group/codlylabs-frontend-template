@@ -31,6 +31,19 @@ export interface ShowcasePoc {
   thumbnail_url: string | null;
 }
 
+export interface ShowcaseStat {
+  poc_id: string;
+  title: string;
+  vertical: string | null;
+  kind: string | null;
+  opens: number;
+  unique_visitors: number;
+  engaged: number;
+  engagement_rate: number;        // 0..1
+  avg_dwell_seconds: number;
+  last_interaction_at: string | null;
+}
+
 export interface ReviewEditorInfo {
   anon_session_id: string;
   poc_id: string;
@@ -499,6 +512,32 @@ class PLGService {
   /** Admin: remove a PoC from the showcase (keeps the live preview). */
   async removeShowcase(pocId: string): Promise<void> {
     await api.delete(`/api/v1/plg/admin/showcase/${encodeURIComponent(pocId)}`);
+  }
+
+  /** Admin: internal engagement stats for the showcase PoCs (hidden from visitors). */
+  async getShowcaseStats(): Promise<ShowcaseStat[]> {
+    const response = await api.get<{ pocs: ShowcaseStat[]; total_opens: number }>(
+      '/api/v1/plg/admin/showcase-stats',
+    );
+    return response.data.pocs || [];
+  }
+
+  /**
+   * Internal engagement tracking for showcase PoCs (hidden from the visitor).
+   * Fire-and-forget: never throws, never blocks the UI.
+   */
+  trackShowcaseEvent(pocId: string, kind: 'open' | 'close', dwellMs = 0): void {
+    let sessionKey = '';
+    try {
+      sessionKey = localStorage.getItem('cl_sk') || '';
+      if (!sessionKey) {
+        sessionKey = Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem('cl_sk', sessionKey);
+      }
+    } catch { /* localStorage no disponible: seguimos sin session_key */ }
+    api.post(`/api/v1/plg/showcase-pocs/${encodeURIComponent(pocId)}/event`, {
+      kind, dwell_ms: Math.max(0, Math.round(dwellMs)), session_key: sessionKey,
+    }).catch(() => { /* silent */ });
   }
 }
 

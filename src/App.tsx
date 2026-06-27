@@ -89,6 +89,7 @@ const AdminDeployPage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminDeployPa
 const AdminTenantsPage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminTenantsPage')) : () => null
 const AdminAnalyticsPage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminAnalyticsPage')) : () => null
 const AdminValidationConsolePage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminValidationConsolePage')) : () => null
+const AdminOpsPage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminOpsPage')) : () => null
 const AdminBillingPage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminBillingPage')) : () => null
 const AdminSalesAssistantPage = SALES_ENABLED ? lazy(() => import('./pages/AdminSalesAssistantPage')) : () => null
 const AdminPocSocialPage = ADMIN_ENABLED ? lazy(() => import('./pages/AdminPocSocialPage')) : () => null
@@ -273,6 +274,7 @@ function App() {
                 <Route path="/admin/training-agent" element={<FeatureGate feature="admin_advanced"><AdminRouteGuard><AdminTrainingAgentPage /></AdminRouteGuard></FeatureGate>} />
                 <Route path="/admin/analytics" element={<FeatureGate feature="admin_advanced"><AdminRouteGuard><AdminAnalyticsPage /></AdminRouteGuard></FeatureGate>} />
                 <Route path="/admin/validation" element={<FeatureGate feature="admin_advanced"><AdminRouteGuard><AdminValidationConsolePage /></AdminRouteGuard></FeatureGate>} />
+                <Route path="/admin/ops" element={<FeatureGate feature="admin_advanced"><AdminRouteGuard><AdminOpsPage /></AdminRouteGuard></FeatureGate>} />
                 <Route path="/admin/billing" element={<FeatureGate feature="admin_advanced"><AdminRouteGuard><AdminBillingPage /></AdminRouteGuard></FeatureGate>} />
                 <Route path="/admin/system" element={<FeatureGate feature="admin_advanced"><AdminRouteGuard><AdminSystemPage /></AdminRouteGuard></FeatureGate>} />
                 <Route path="/admin/deploy" element={<FeatureGate feature="admin_advanced"><AdminRouteGuard><AdminDeployPage /></AdminRouteGuard></FeatureGate>} />

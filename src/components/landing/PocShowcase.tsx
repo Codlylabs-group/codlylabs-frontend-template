@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Map as MapIcon,
   ScanFace,
@@ -45,6 +45,18 @@ export default function PocShowcase({ fallback, es }: { fallback: React.ReactNod
   const [pocs, setPocs] = useState<ShowcasePoc[] | null>(null)
   const [active, setActive] = useState<ShowcasePoc | null>(null)
   const [filter, setFilter] = useState<string>('all')
+  const openedAtRef = useRef(0)
+
+  // Tracking interno de engagement (oculto al visitante, best-effort).
+  const openPoc = (poc: ShowcasePoc) => {
+    openedAtRef.current = Date.now()
+    plgService.trackShowcaseEvent(poc.poc_id, 'open')
+    setActive(poc)
+  }
+  const closeActive = () => {
+    if (active) plgService.trackShowcaseEvent(active.poc_id, 'close', Date.now() - openedAtRef.current)
+    setActive(null)
+  }
 
   useEffect(() => {
     let alive = true
@@ -58,7 +70,7 @@ export default function PocShowcase({ fallback, es }: { fallback: React.ReactNod
   // Cerrar el modal con Escape.
   useEffect(() => {
     if (!active) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setActive(null) }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeActive() }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [active])
@@ -104,7 +116,7 @@ export default function PocShowcase({ fallback, es }: { fallback: React.ReactNod
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {shown.map((poc) => (
-          <PocCard key={poc.poc_id} poc={poc} onOpen={() => setActive(poc)} t={t} />
+          <PocCard key={poc.poc_id} poc={poc} onOpen={() => openPoc(poc)} t={t} />
         ))}
       </div>
 
@@ -112,7 +124,7 @@ export default function PocShowcase({ fallback, es }: { fallback: React.ReactNod
       {active && (
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/70 p-4 backdrop-blur-sm"
-          onClick={() => setActive(null)}
+          onClick={() => closeActive()}
         >
           <div
             className="flex h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
@@ -136,7 +148,7 @@ export default function PocShowcase({ fallback, es }: { fallback: React.ReactNod
                   {t('Pantalla completa', 'Full screen')}
                 </a>
                 <button
-                  onClick={() => setActive(null)}
+                  onClick={() => closeActive()}
                   className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700"
                   aria-label={t('Cerrar', 'Close')}
                 >

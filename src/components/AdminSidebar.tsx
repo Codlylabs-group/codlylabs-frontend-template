@@ -1,8 +1,8 @@
-import { LayoutDashboard, Users, Headphones, LogOut, Activity, TrendingUp, CreditCard, FlaskConical, Megaphone, BarChart3, Newspaper, Rocket, ClipboardCheck } from 'lucide-react'
+import { LayoutDashboard, Users, Headphones, LogOut, Activity, TrendingUp, CreditCard, FlaskConical, Megaphone, BarChart3, Newspaper, Rocket, ClipboardCheck, Wrench } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 interface AdminSidebarProps {
-  currentPage: 'dashboard' | 'users' | 'organizations' | 'pocs' | 'vertical-packs' | 'marketplace' | 'poc-social' | 'marketing-insights' | 'pulse' | 'sales-assistant' | 'patterns' | 'spec-editor' | 'training-agent' | 'system' | 'deploy' | 'tenants' | 'analytics' | 'billing' | 'validation'
+  currentPage: 'dashboard' | 'users' | 'organizations' | 'pocs' | 'vertical-packs' | 'marketplace' | 'poc-social' | 'marketing-insights' | 'pulse' | 'sales-assistant' | 'patterns' | 'spec-editor' | 'training-agent' | 'system' | 'deploy' | 'tenants' | 'analytics' | 'billing' | 'validation' | 'operaciones'
   onLogout: () => void
 }
 
@@ -21,6 +21,12 @@ export default function AdminSidebar({ currentPage, onLogout }: AdminSidebarProp
       label: 'Validación',
       icon: ClipboardCheck,
       path: '/admin/validation'
+    },
+    {
+      id: 'operaciones',
+      label: 'Operaciones',
+      icon: Wrench,
+      path: '/admin/ops'
     },
     {
       id: 'users',

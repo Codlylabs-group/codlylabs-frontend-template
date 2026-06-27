@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { RefreshCw, ExternalLink, Wrench, Check, X, RotateCcw, Trash2, Star } from 'lucide-react'
 import { api } from '../services/api'
-import { plgService } from '../services/plg'
+import { plgService, type ShowcaseStat } from '../services/plg'
 import { useAppSelector, useAppDispatch } from '../store/hooks'
 import { clearAuth } from '../store/userSlice'
 import AdminSidebar from '../components/AdminSidebar'
@@ -54,6 +54,7 @@ export default function AdminValidationConsolePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [busyAnon, setBusyAnon] = useState<string | null>(null)
+  const [showcaseStats, setShowcaseStats] = useState<ShowcaseStat[]>([])
   // Modal "Promover a vidriera"
   const [showcaseReq, setShowcaseReq] = useState<ValidationRequest | null>(null)
   const [scTitle, setScTitle] = useState('')
@@ -75,6 +76,8 @@ export default function AdminValidationConsolePage() {
     try {
       const res = await api.get('/api/v1/plg/admin/validation-requests')
       setRequests(res.data.requests || [])
+      // Engagement de la vidriera (interno) — best-effort, no bloquea ni pisa la consola.
+      plgService.getShowcaseStats().then(setShowcaseStats).catch(() => {})
       if (silent) setError('')
     } catch (err: any) {
       // En polling silencioso no pisamos la tabla por un blip de red.
@@ -186,6 +189,45 @@ export default function AdminValidationConsolePage() {
             </button>
           </div>
         </div>
+
+        {/* Vidriera · Engagement (interno — el visitante no ve estos números) */}
+        {showcaseStats.length > 0 && (
+          <div className="mb-8 bg-white rounded-xl shadow overflow-hidden">
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+              <Star className="w-4 h-4 text-amber-500" />
+              <h2 className="text-sm font-bold text-gray-900">Vidriera · Engagement</h2>
+              <span className="text-xs text-gray-400">interno · ordenado por más elegidas</span>
+            </div>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
+                  <th className="px-4 py-2">PoC</th>
+                  <th className="px-4 py-2">Tipo</th>
+                  <th className="px-4 py-2 text-right">Aperturas</th>
+                  <th className="px-4 py-2 text-right">Visitantes</th>
+                  <th className="px-4 py-2 text-right">Engagement</th>
+                  <th className="px-4 py-2 text-right">Tiempo prom.</th>
+                  <th className="px-4 py-2">Última</th>
+                </tr>
+              </thead>
+              <tbody>
+                {showcaseStats.map((s) => (
+                  <tr key={s.poc_id} className="border-t border-gray-100">
+                    <td className="px-4 py-2 text-gray-900">{s.title}</td>
+                    <td className="px-4 py-2 text-gray-500">{s.kind || '-'}</td>
+                    <td className="px-4 py-2 text-right font-semibold text-gray-900">{s.opens}</td>
+                    <td className="px-4 py-2 text-right text-gray-600">{s.unique_visitors}</td>
+                    <td className="px-4 py-2 text-right text-gray-600">
+                      {Math.round(s.engagement_rate * 100)}% <span className="text-gray-300">({s.engaged})</span>
+                    </td>
+                    <td className="px-4 py-2 text-right text-gray-600">{s.avg_dwell_seconds ? `${s.avg_dwell_seconds}s` : '—'}</td>
+                    <td className="px-4 py-2 whitespace-nowrap text-gray-400">{formatDate(s.last_interaction_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {error && <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">{error}</div>}
 
