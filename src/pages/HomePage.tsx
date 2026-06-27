@@ -31,6 +31,7 @@ import {
 } from 'lucide-react'
 import Footer from '../components/landing/Footer'
 import ValidationWizard from '../components/landing/ValidationWizard'
+import PocShowcase from '../components/landing/PocShowcase'
 import { useI18n } from '../i18n'
 
 export default function HomePage() {
@@ -742,27 +743,32 @@ export default function HomePage() {
               {t('Resolvemos problemas, no vendemos tecnología.', "We solve problems, we don't sell technology.")}
             </h2>
           </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {useCases.map((uc) => {
-              const Icon = uc.icon
-              return (
-                <div key={uc.sector} className="rounded-3xl border border-gray-100 bg-gray-50/60 p-7">
-                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm">
-                    <Icon className="h-6 w-6 text-indigo-600" />
-                  </div>
-                  <h3 className="mb-4 text-xl font-bold text-gray-900" style={{ fontFamily: 'Manrope, sans-serif' }}>{uc.sector}</h3>
-                  <div className="space-y-2">
-                    {uc.items.map((it) => (
-                      <div key={it} className="flex items-center gap-2 text-sm text-gray-700">
-                        <span className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
-                        {it}
+          <PocShowcase
+            es={es}
+            fallback={
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {useCases.map((uc) => {
+                  const Icon = uc.icon
+                  return (
+                    <div key={uc.sector} className="rounded-3xl border border-gray-100 bg-gray-50/60 p-7">
+                      <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm">
+                        <Icon className="h-6 w-6 text-indigo-600" />
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+                      <h3 className="mb-4 text-xl font-bold text-gray-900" style={{ fontFamily: 'Manrope, sans-serif' }}>{uc.sector}</h3>
+                      <div className="space-y-2">
+                        {uc.items.map((it) => (
+                          <div key={it} className="flex items-center gap-2 text-sm text-gray-700">
+                            <span className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
+                            {it}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            }
+          />
         </div>
       </section>
 

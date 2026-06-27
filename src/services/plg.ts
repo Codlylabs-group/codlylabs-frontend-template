@@ -8,16 +8,9 @@
 import { api } from './api';
 
 export interface ValidationRequestPayload {
-  company_name: string;
   industry?: string;
-  full_name: string;
-  role?: string;
   email: string;
   problem: string;
-  current_process?: string;
-  goals: string;
-  data?: string;
-  catalog?: string;
   language?: 'en' | 'es';
 }
 
@@ -25,6 +18,17 @@ export interface ValidationRequestResponse {
   request_id: string;
   status: string;
   message: string;
+}
+
+export interface ShowcasePoc {
+  poc_id: string;
+  title: string;
+  description: string | null;
+  vertical: string | null;
+  kind: string | null;            // map | vision | rag | predictive | workflow
+  sort_order: number;
+  preview_url: string;
+  thumbnail_url: string | null;
 }
 
 export interface ReviewEditorInfo {
@@ -469,6 +473,32 @@ class PLGService {
       payload,
     );
     return response.data;
+  }
+
+  /**
+   * Public showcase gallery for the landing (no auth). Returns the curated,
+   * always-alive PoCs.
+   */
+  async getShowcasePocs(): Promise<ShowcasePoc[]> {
+    const response = await api.get<{ pocs: ShowcasePoc[] }>('/api/v1/plg/showcase-pocs');
+    return response.data.pocs || [];
+  }
+
+  /** Admin: promote an approved PoC to the landing showcase. */
+  async promoteShowcase(payload: {
+    poc_id: string
+    title: string
+    vertical?: string
+    kind?: string
+    description?: string
+    sort_order?: number
+  }): Promise<void> {
+    await api.post('/api/v1/plg/admin/showcase', payload);
+  }
+
+  /** Admin: remove a PoC from the showcase (keeps the live preview). */
+  async removeShowcase(pocId: string): Promise<void> {
+    await api.delete(`/api/v1/plg/admin/showcase/${encodeURIComponent(pocId)}`);
   }
 }
 
