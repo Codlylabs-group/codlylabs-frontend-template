@@ -18,7 +18,7 @@ import { plgService, type ShowcasePoc } from '../../services/plg'
  * -----------
  * Galería de PoCs "vidriera": un set curado que vive indefinidamente y con el
  * que el visitante interactúa en vivo (iframe en modal). Si la vidriera está
- * vacía (o el endpoint falla), cae al contenido estático que recibe por prop.
+ * vacía (o el endpoint falla), no muestra demos estáticas como si fueran PoCs.
  */
 
 const KIND_META: Record<string, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
@@ -40,10 +40,13 @@ const verticalLabel = (v: string | null): string => {
 }
 
 export default function PocShowcase({ fallback, es }: { fallback: React.ReactNode; es: boolean }) {
+  void fallback
   const t = (esText: string, enText: string) => (es ? esText : enText)
 
   const [pocs, setPocs] = useState<ShowcasePoc[] | null>(null)
   const [active, setActive] = useState<ShowcasePoc | null>(null)
+  const [frameLoading, setFrameLoading] = useState(false)
+  const [frameFailed, setFrameFailed] = useState(false)
   const [filter, setFilter] = useState<string>('all')
   const openedAtRef = useRef(0)
 
@@ -51,6 +54,8 @@ export default function PocShowcase({ fallback, es }: { fallback: React.ReactNod
   const openPoc = (poc: ShowcasePoc) => {
     openedAtRef.current = Date.now()
     plgService.trackShowcaseEvent(poc.poc_id, 'open')
+    setFrameLoading(true)
+    setFrameFailed(false)
     setActive(poc)
   }
   const closeActive = () => {
@@ -66,6 +71,12 @@ export default function PocShowcase({ fallback, es }: { fallback: React.ReactNod
       .catch(() => { if (alive) setPocs([]) })
     return () => { alive = false }
   }, [])
+
+  useEffect(() => {
+    if (!active) return
+    setFrameLoading(true)
+    setFrameFailed(false)
+  }, [active?.poc_id])
 
   // Cerrar el modal con Escape.
   useEffect(() => {
@@ -99,8 +110,8 @@ export default function PocShowcase({ fallback, es }: { fallback: React.ReactNod
     )
   }
 
-  // Vacía → fallback estático
-  if (pocs.length === 0) return <>{fallback}</>
+  // Vacía: no mostramos cards estáticas como PoCs vivas.
+  if (pocs.length === 0) return null
 
   return (
     <>
@@ -156,11 +167,38 @@ export default function PocShowcase({ fallback, es }: { fallback: React.ReactNod
                 </button>
               </div>
             </div>
-            <iframe
-              src={active.preview_url}
-              title={active.title}
-              className="h-full w-full flex-1 border-0 bg-white"
-            />
+            <div className="relative h-full flex-1 bg-white">
+              {frameLoading && (
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-white text-gray-500">
+                  <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+                  <p className="text-sm font-semibold">{t('Cargando PoC...', 'Loading PoC...')}</p>
+                </div>
+              )}
+              {frameFailed && (
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-white px-6 text-center">
+                  <p className="text-sm font-bold text-gray-900">{t('No se pudo cargar esta PoC', 'This PoC could not be loaded')}</p>
+                  <a
+                    href={active.preview_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    {t('Abrir en nueva pestaña', 'Open in new tab')}
+                  </a>
+                </div>
+              )}
+              <iframe
+                src={active.preview_url}
+                title={active.title}
+                onLoad={() => window.setTimeout(() => setFrameLoading(false), 500)}
+                onError={() => {
+                  setFrameLoading(false)
+                  setFrameFailed(true)
+                }}
+                className="h-full w-full border-0 bg-white"
+              />
+            </div>
           </div>
         </div>
       )}
